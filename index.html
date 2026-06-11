@@ -197,6 +197,7 @@ select option{background:var(--surface)}
       <span class="role-pill" id="h-role"></span>
     </div>
     <button class="btn btn-ghost btn-sm" onclick="syncNow()" id="sync-btn">↕️ Sync</button>
+    <button class="btn btn-ghost btn-sm" onclick="openChangePassword()">🔑 Mi cuenta</button>
     <button class="btn btn-ghost btn-sm" onclick="doLogout()">Salir</button>
   </div>
 </header>
@@ -390,6 +391,70 @@ function doLogin() {
   initApp();
 }
 
+function openChangePassword() {
+  document.getElementById('modal-title').textContent = '🔑 Cambiar contraseña';
+  document.getElementById('modal-body').innerHTML = `
+    <p style="font-size:13px;color:var(--text-soft);margin-bottom:16px">
+      Cambia tu contraseña de acceso, <strong>${currentUser.name}</strong>.
+    </p>
+    <div class="form-grid full" style="gap:12px">
+      <div><label>Contraseña actual</label>
+        <input type="password" id="cp-current" placeholder="Tu contraseña actual"/></div>
+      <div><label>Nueva contraseña</label>
+        <input type="password" id="cp-new" placeholder="Nueva contraseña"/></div>
+      <div><label>Confirmar nueva contraseña</label>
+        <input type="password" id="cp-confirm" placeholder="Repite la nueva contraseña"/></div>
+    </div>
+    <div id="cp-error" style="color:var(--danger);font-size:12px;margin-top:10px;display:none"></div>
+    <div class="mt-16 row-between">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmChangePassword()">Guardar contraseña</button>
+    </div>`;
+  document.getElementById('modal-backdrop').classList.add('open');
+}
+
+function confirmChangePassword() {
+  const current = document.getElementById('cp-current').value;
+  const newPass  = document.getElementById('cp-new').value;
+  const confirm  = document.getElementById('cp-confirm').value;
+  const errEl    = document.getElementById('cp-error');
+  errEl.style.display = 'none';
+
+  // Verificar contraseña actual
+  let currentOk = false;
+  if (currentUser.role === 'admin') {
+    currentOk = current === ADMIN_USER.password;
+  } else {
+    const doc = doctors.find(d => d.id === currentUser.id);
+    currentOk = doc && current === doc.password;
+  }
+
+  if (!currentOk) {
+    errEl.textContent = 'La contraseña actual es incorrecta'; errEl.style.display='block'; return;
+  }
+  if (!newPass || newPass.length < 4) {
+    errEl.textContent = 'La nueva contraseña debe tener al menos 4 caracteres'; errEl.style.display='block'; return;
+  }
+  if (newPass !== confirm) {
+    errEl.textContent = 'Las contraseñas no coinciden'; errEl.style.display='block'; return;
+  }
+
+  // Guardar
+  if (currentUser.role === 'admin') {
+    ADMIN_USER.password = newPass;
+    // Persistir contraseña admin en localStorage
+    const adminCfg = JSON.parse(localStorage.getItem('ac_admin') || '{}');
+    adminCfg.password = newPass;
+    localStorage.setItem('ac_admin', JSON.stringify(adminCfg));
+  } else {
+    const doc = doctors.find(d => d.id === currentUser.id);
+    if (doc) { doc.password = newPass; saveDoctors(); }
+  }
+
+  closeModal();
+  showToast('✅ Contraseña actualizada correctamente');
+}
+
 function doLogout() {
   currentUser = null;
   document.getElementById('login-screen').style.display = 'flex';
@@ -402,6 +467,9 @@ function doLogout() {
    INIT
 ══════════════════════════════════ */
 function initApp() {
+  // Cargar contraseña admin personalizada si existe
+  const adminCfg = JSON.parse(localStorage.getItem('ac_admin') || '{}');
+  if (adminCfg.password) ADMIN_USER.password = adminCfg.password;
   // Header
   const initials = currentUser.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('h-avatar').textContent = initials;
