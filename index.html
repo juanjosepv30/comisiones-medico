@@ -1049,7 +1049,6 @@ function showToast(msg, duration = 3000) {
 
 async function syncNow() {
   const url = getScriptUrl();
-  if (!url) { showToast('⚠️ Configura la URL del Apps Script primero'); switchTab('config'); return; }
 
   setSyncStatus('pending', 'Sincronizando…');
   const btn = document.getElementById('sync-btn');
