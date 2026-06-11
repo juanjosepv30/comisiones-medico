@@ -691,8 +691,9 @@ function renderList() {
         <span class="entry-total-badge">$${e.totalCom.toLocaleString('es-CO')}</span>
       </div>
       <div class="entry-items-preview">${badges}</div>
-      <div class="entry-actions" style="display:flex;gap:6px;margin-top:12px" onclick="event.stopPropagation()">
+      <div class="entry-actions" style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap" onclick="event.stopPropagation()">
         <button class="btn btn-ghost btn-sm" onclick="openDetail(${e.id})">Ver detalle</button>
+        <button class="btn btn-primary btn-sm" onclick="openEditEntry(${e.id})">✏️ Editar</button>
         ${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">Eliminar</button>`:''}
       </div>
     </div>`;
