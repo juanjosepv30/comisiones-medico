@@ -470,6 +470,7 @@ function initApp() {
   } else {
     tabs.innerHTML = `
       <button class="tab-btn" onclick="switchTab('registro')">➕ Nuevo registro</button>
+      <button class="tab-btn" onclick="switchTab('listado')">📋 Mis registros</button>
       <button class="tab-btn" onclick="switchTab('resumen')">📊 Resumen</button>`;
   }
 
@@ -749,6 +750,153 @@ function openDetail(id) {
       <div class="total-grand"><span>Total comisión</span><span class="tl-val">$${e.totalCom.toLocaleString('es-CO')}</span></div>
     </div>`;
   document.getElementById('modal-backdrop').classList.add('open');
+}
+
+function openEditEntry(id) {
+  const e = allEntries.find(en => en.id === id);
+  if (!e) return;
+  if (currentUser.role === 'doctor' && e.doctorId !== currentUser.id) return;
+
+  const pcts = myPcts();
+  const catOpts = CATEGORIES.map(c =>
+    `<option value="${c.id}">${c.label}</option>`
+  ).join('');
+
+  const itemRows = e.items.map((it, idx) => {
+    const opts = CATEGORIES.map(cat =>
+      `<option value="${cat.id}" ${cat.id===it.cat?'selected':''}>${cat.label}</option>`
+    ).join('');
+    return `<div class="item-row" data-idx="${idx}">
+      <div class="item-desc"><input type="text" value="${it.desc||''}" placeholder="Descripción" oninput="calcEditTotals()"/></div>
+      <div><select onchange="calcEditTotals()">${opts}</select></div>
+      <div><input type="number" min="0" step="1000" value="${it.val||0}" inputmode="numeric" pattern="[0-9]*" oninput="calcEditTotals()"/></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="pct-label" id="epct-${idx}">${it.pct||0}%</span>
+        <span style="color:var(--text-soft);font-family:var(--font-mono);font-size:12px" id="ecom-${idx}">$${(it.com||0).toLocaleString('es-CO')}</span>
+      </div>
+      <button class="btn btn-icon" onclick="this.closest('.item-row').remove();calcEditTotals()">✕</button>
+    </div>`;
+  }).join('');
+
+  document.getElementById('modal-title').textContent = `✏️ Editar · ${e.patient} Fact. ${e.fact}`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid cols-3" style="margin-bottom:14px">
+      <div><label>Mascota</label><input type="text" id="edit-patient" value="${e.patient}"/></div>
+      <div><label>Propietario</label><input type="text" id="edit-owner" value="${e.owner||''}"/></div>
+      <div><label>N° Factura</label><input type="text" id="edit-fact" value="${e.fact}"/></div>
+    </div>
+    <div class="form-grid" style="margin-bottom:14px">
+      <div><label>Fecha</label><input type="date" id="edit-date" value="${e.date}"/></div>
+      <div><label>Notas</label><input type="text" id="edit-notes" value="${e.notes||''}"/></div>
+    </div>
+    <div class="divider"></div>
+    <div class="items-header">
+      <span>Descripción</span><span>Categoría</span><span>Valor</span><span>% / Comisión</span><span></span>
+    </div>
+    <div id="edit-items-container">${itemRows}</div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addEditItem()">+ Agregar ítem</button>
+    <div id="edit-totals" class="totals-preview" style="margin-top:14px">
+      <h4>Comisiones recalculadas</h4>
+      <div class="totals-grid" id="edit-totals-grid"></div>
+      <div class="total-grand">
+        <span>Total comisión</span>
+        <span class="tl-val" id="edit-grand-total">$0</span>
+      </div>
+    </div>
+    <div class="mt-16 row-between">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEditEntry(${id})">💾 Guardar cambios</button>
+    </div>`;
+
+  document.getElementById('modal-backdrop').classList.add('open');
+  calcEditTotals();
+}
+
+function addEditItem() {
+  const pcts = myPcts();
+  const catOpts = CATEGORIES.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+  const idx = document.querySelectorAll('#edit-items-container .item-row').length;
+  const row = document.createElement('div');
+  row.className = 'item-row';
+  row.dataset.idx = idx;
+  row.innerHTML = `
+    <div class="item-desc"><input type="text" placeholder="Descripción" oninput="calcEditTotals()"/></div>
+    <div><select onchange="calcEditTotals()">${catOpts}</select></div>
+    <div><input type="number" min="0" step="1000" placeholder="0" inputmode="numeric" pattern="[0-9]*" oninput="calcEditTotals()"/></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="pct-label" id="epct-${idx}">${pcts['servicios']||0}%</span>
+      <span style="color:var(--text-soft);font-family:var(--font-mono);font-size:12px" id="ecom-${idx}">$0</span>
+    </div>
+    <button class="btn btn-icon" onclick="this.closest('.item-row').remove();calcEditTotals()">✕</button>`;
+  document.getElementById('edit-items-container').appendChild(row);
+  calcEditTotals();
+}
+
+function calcEditTotals() {
+  const pcts = myPcts();
+  const rows = document.querySelectorAll('#edit-items-container .item-row');
+  let catTotals = {};
+  rows.forEach((row, idx) => {
+    const inputs = row.querySelectorAll('input');
+    const sel    = row.querySelector('select');
+    const val    = parseFloat(inputs[1] ? inputs[1].value : 0) || 0;
+    const cat    = sel ? sel.value : 'servicios';
+    const pct    = pcts[cat] || 0;
+    const com    = Math.round(val * pct / 100);
+    const pctEl  = row.querySelector('.pct-label');
+    const comEl  = row.querySelector('[id^="ecom-"]');
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (comEl) comEl.textContent = '$' + com.toLocaleString('es-CO');
+    if (val > 0) catTotals[cat] = (catTotals[cat] || 0) + com;
+  });
+  const gridEl = document.getElementById('edit-totals-grid');
+  const grandEl = document.getElementById('edit-grand-total');
+  if (!gridEl) return;
+  const totalCom = Object.values(catTotals).reduce((a,b)=>a+b,0);
+  gridEl.innerHTML = Object.entries(catTotals).map(([cat,com]) => {
+    const obj = CATEGORIES.find(c=>c.id===cat);
+    return `<div class="total-line"><span class="tl-label">${obj?obj.label:cat} (${pcts[cat]}%)</span><span class="tl-val">$${com.toLocaleString('es-CO')}</span></div>`;
+  }).join('');
+  if (grandEl) grandEl.textContent = '$' + totalCom.toLocaleString('es-CO');
+}
+
+function saveEditEntry(id) {
+  const pcts    = myPcts();
+  const patient = document.getElementById('edit-patient').value.trim();
+  const owner   = document.getElementById('edit-owner').value.trim();
+  const fact    = document.getElementById('edit-fact').value.trim();
+  const date    = document.getElementById('edit-date').value;
+  const notes   = document.getElementById('edit-notes').value.trim();
+  if (!patient || !fact) { alert('Mascota y factura son obligatorios'); return; }
+
+  const rows = document.querySelectorAll('#edit-items-container .item-row');
+  const items = Array.from(rows).map(row => {
+    const inputs = row.querySelectorAll('input');
+    const sel    = row.querySelector('select');
+    const desc   = inputs[0].value.trim();
+    const val    = parseFloat(inputs[1] ? inputs[1].value : 0) || 0;
+    const cat    = sel ? sel.value : 'servicios';
+    const pct    = pcts[cat] || 0;
+    const com    = Math.round(val * pct / 100);
+    return { desc, cat, val, pct, com };
+  }).filter(it => it.desc || it.val);
+
+  if (!items.length) { alert('Agrega al menos un ítem'); return; }
+
+  const catTotals = {};
+  items.forEach(it => { catTotals[it.cat] = (catTotals[it.cat]||0) + it.com; });
+  const totalCom = Object.values(catTotals).reduce((a,b)=>a+b,0);
+  const totalVal = items.reduce((a,b)=>a+b.val,0);
+
+  const idx = allEntries.findIndex(en => en.id === id);
+  if (idx === -1) { alert('Registro no encontrado'); return; }
+
+  allEntries[idx] = { ...allEntries[idx], patient, owner, fact, date, notes, items, catTotals, totalCom, totalVal };
+  saveEntries();
+  closeModal();
+  renderList();
+  silentSync();
+  showToast('✅ Registro actualizado');
 }
 
 function closeModal() { document.getElementById('modal-backdrop').classList.remove('open'); }
