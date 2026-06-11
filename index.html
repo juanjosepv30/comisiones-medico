@@ -196,17 +196,13 @@ select option{background:var(--surface)}
       <span id="h-name" style="font-size:13px"></span>
       <span class="role-pill" id="h-role"></span>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="syncNow()" id="sync-btn">↕️ Sync</button>
     <button class="btn btn-ghost btn-sm" onclick="openChangePassword()">🔑 Mi cuenta</button>
     <button class="btn btn-ghost btn-sm" onclick="doLogout()">Salir</button>
   </div>
 </header>
 
 <div class="tabs" id="nav-tabs">
-  <button class="tab-btn active" onclick="switchTab('registro')">➕ Nuevo registro</button>
-  <button class="tab-btn" onclick="switchTab('listado')">📋 Registros</button>
-  <button class="tab-btn" onclick="switchTab('resumen')">📊 Resumen</button>
-  <!-- admin-only tabs injected by JS -->
+  <!-- tabs built dynamically in initApp -->
 </div>
 
 <div class="main">
@@ -216,7 +212,7 @@ select option{background:var(--surface)}
     <div class="card">
       <div class="card-title">Datos del paciente</div>
       <div class="form-grid cols-3">
-        <div><label>Paciente</label><input type="text" id="inp-patient" placeholder="Nombre del animal"/></div>
+        <div><label>Mascota</label><input type="text" id="inp-patient" placeholder="Nombre de la mascota"/></div>
         <div><label>Propietario</label><input type="text" id="inp-owner" placeholder="Nombre del dueño"/></div>
         <div><label>N° Factura</label><input type="text" id="inp-fact" placeholder="Ej: 53527"/></div>
       </div>
@@ -255,14 +251,7 @@ select option{background:var(--surface)}
 
   <!-- ════ LISTADO ════ -->
   <div id="view-listado" class="view">
-    <div id="sync-bar" class="sync-bar">
-      <span class="sync-dot off" id="sync-dot"></span>
-      <span class="sync-msg" id="sync-msg">Listo para sincronizar</span>
-      <span class="sync-time" id="sync-time"></span>
-      <button class="btn btn-ghost btn-sm" onclick="syncNow()">↕️ Sincronizar</button>
-      <button class="btn btn-ghost btn-sm" onclick="loadFromSheets()">⬇️ Cargar</button>
-    </div>
-    <div class="month-bar">
+        <div class="month-bar">
       <label>Mes</label>
       <input type="month" id="filter-month-list" onchange="renderList()"/>
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filter-month-list').value='';renderList()">Ver todos</button>
@@ -349,6 +338,8 @@ const CAT_COLORS = {
 // Usuarios por defecto — admin siempre existe
 // doctores se guardan en localStorage bajo 'ac_doctors'
 const ADMIN_USER = { username:'admin', password:'AnimalCenter2024', role:'admin', name:'Administrador' };
+// Restaurar contraseña admin si fue cambiada
+(function(){ const s=JSON.parse(localStorage.getItem('ac_admin')||'{}'); if(s.password) ADMIN_USER.password=s.password; })();
 
 /* ══════════════════════════════════
    ESTADO
@@ -467,9 +458,6 @@ function doLogout() {
    INIT
 ══════════════════════════════════ */
 function initApp() {
-  // Cargar contraseña admin personalizada si existe
-  const adminCfg = JSON.parse(localStorage.getItem('ac_admin') || '{}');
-  if (adminCfg.password) ADMIN_USER.password = adminCfg.password;
   // Header
   const initials = currentUser.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('h-avatar').textContent = initials;
@@ -478,13 +466,18 @@ function initApp() {
   rolePill.textContent = currentUser.role === 'admin' ? 'Admin' : 'Médico';
   rolePill.className = 'role-pill ' + currentUser.role;
 
-  // Tabs según rol
+  // Construir tabs según rol
   const tabs = document.getElementById('nav-tabs');
+  tabs.innerHTML = '';
   if (currentUser.role === 'admin') {
-    if (!document.getElementById('tab-medicos')) {
-      tabs.innerHTML += `<button class="tab-btn" id="tab-medicos" onclick="switchTab('medicos')">👥 Médicos</button>`;
-      tabs.innerHTML += `<button class="tab-btn" id="tab-admin-reg" onclick="switchTab('admin-registros')">📋 Todos los registros</button>`;
-    }
+    tabs.innerHTML = `
+      <button class="tab-btn" onclick="switchTab('admin-registros')">📋 Todos los registros</button>
+      <button class="tab-btn" onclick="switchTab('resumen')">📊 Resumen</button>
+      <button class="tab-btn" onclick="switchTab('medicos')">👥 Médicos</button>`;
+  } else {
+    tabs.innerHTML = `
+      <button class="tab-btn" onclick="switchTab('registro')">➕ Nuevo registro</button>
+      <button class="tab-btn" onclick="switchTab('resumen')">📊 Resumen</button>`;
   }
 
   document.getElementById('inp-date').value = todayStr();
@@ -495,7 +488,11 @@ function initApp() {
   if (adminMon) adminMon.value = ym;
 
   updateSyncBar();
-  switchTab('registro');
+  if (currentUser.role === 'admin') {
+    switchTab('admin-registros');
+  } else {
+    switchTab('registro');
+  }
 }
 
 /* ══════════════════════════════════
@@ -541,7 +538,7 @@ function addItem(desc='', cat='servicios', val='') {
   row.innerHTML = `
     <div class="item-desc"><input type="text" placeholder="Descripción" value="${desc}" oninput="calcTotals()"/></div>
     <div><select onchange="onCatChange('${id}',this)">${catOpts}</select></div>
-    <div><input type="number" min="0" step="1000" placeholder="0" value="${val}" oninput="calcTotals()"/></div>
+    <div><input type="number" min="0" step="1000" placeholder="0" value="${val}" inputmode="numeric" pattern="[0-9]*" oninput="calcTotals()"/></div>
     <div style="display:flex;align-items:center;gap:6px">
       <span class="pct-label" id="pct-${id}">${pcts[cat]||0}%</span>
       <span style="color:var(--text-soft);font-family:var(--font-mono);font-size:12px" id="com-${id}">$0</span>
@@ -644,7 +641,13 @@ function clearForm() {
   calcTotals();
 }
 
-function todayStr() { return new Date().toISOString().slice(0,10); }
+function todayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
 
 /* ══════════════════════════════════
    LISTADO (vista médico — solo los suyos)
@@ -1082,7 +1085,15 @@ async function loadFromSheets() {
 }
 
 function updateSyncBar() {
-  setSyncStatus('ok', 'Google Sheets conectado — listo para sincronizar');
+  // Auto-sync silencioso al cargar
+  silentSync();
+}
+
+async function silentSync() {
+  try {
+    const payload = { action:'sync', entries: allEntries };
+    await fetch(APPS_URL, { method:'POST', body: JSON.stringify(payload) });
+  } catch(e) { /* silencioso */ }
 }
 
 /* ══════════════════════════════════
