@@ -1286,6 +1286,9 @@ const ym = new Date().toISOString().slice(0,7);
 document.getElementById('filter-month-list').value    = ym;
 document.getElementById('filter-month-summary').value = ym;
 
+// URL preconfigurada
+config.appsScriptUrl = config.appsScriptUrl || 'https://script.google.com/macros/s/AKfycbxxGlG0RzuUnhF6jBtsstGQSCtEvIK4QvRA6vdPNLcGKM3usQr1fQI4p3nXVELClLPx/exec';
+localStorage.setItem('ac_config', JSON.stringify(config));
 updateDoctorHeader();
 renderConfig();
 updateSyncBar();
