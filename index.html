@@ -1,538 +1,317 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Comisiones — Animal Center</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  /* ── TOKENS ── */
-  :root {
-    --bg:        #0f1117;
-    --surface:   #181c27;
-    --card:      #1e2333;
-    --border:    #2a3049;
-    --accent:    #4fd1c5;   /* teal clínico */
-    --accent2:   #f6ad55;   /* ámbar para dinero */
-    --muted:     #64748b;
-    --text:      #e2e8f0;
-    --text-soft: #94a3b8;
-    --danger:    #fc8181;
-    --success:   #68d391;
+:root {
+  --bg:#0f1117; --surface:#181c27; --card:#1e2333; --border:#2a3049;
+  --accent:#4fd1c5; --accent2:#f6ad55; --muted:#64748b;
+  --text:#e2e8f0; --text-soft:#94a3b8; --danger:#fc8181; --success:#68d391;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'Inter',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','Courier New',monospace;
+  --radius:10px;
+}
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;line-height:1.6;min-height:100vh}
 
-    --font-display: 'DM Serif Display', Georgia, serif;
-    --font-body:    'Inter', system-ui, sans-serif;
-    --font-mono:    'JetBrains Mono', 'Courier New', monospace;
-    --radius:       10px;
-  }
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500;padding:16px}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:40px 36px;width:100%;max-width:380px}
+.login-logo{font-family:var(--font-display);font-size:26px;color:var(--accent);margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--text-soft);margin-bottom:28px}
+.login-box label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text-soft);margin-bottom:5px}
+.login-box input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px 12px;outline:none;transition:border-color .15s;margin-bottom:14px}
+.login-box input:focus{border-color:var(--accent)}
+.login-error{color:var(--danger);font-size:12px;margin-bottom:12px;display:none}
+.login-box .btn-login{width:100%;padding:11px;font-size:15px;font-weight:600;background:var(--accent);color:#0f1117;border:none;border-radius:8px;cursor:pointer;margin-top:4px;transition:opacity .15s}
+.login-box .btn-login:hover{opacity:.85}
 
-  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+.logo{font-family:var(--font-display);font-size:20px;color:var(--accent)}
+.logo span{color:var(--text-soft);font-size:13px;font-family:var(--font-body);font-weight:400;margin-left:10px}
+.header-right{display:flex;align-items:center;gap:10px}
+.user-badge{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:4px 12px 4px 8px;font-size:13px}
+.user-avatar{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#0f1117;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
+.role-pill{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:999px}
+.role-pill.admin{background:color-mix(in srgb,var(--accent2) 20%,transparent);color:var(--accent2)}
+.role-pill.doctor{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent)}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;overflow-x:auto}
+.tab-btn{background:none;border:none;color:var(--muted);font-family:var(--font-body);font-size:13px;font-weight:500;padding:12px 14px;cursor:pointer;position:relative;transition:color .15s;white-space:nowrap}
+.tab-btn.active{color:var(--accent)}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent);border-radius:2px 2px 0 0}
+.tab-btn:hover:not(.active){color:var(--text)}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
+/* LAYOUT */
+.main{padding:20px;max-width:980px;margin:0 auto}
+.view{display:none}
+.view.active{display:block}
 
-  /* ── HEADER ── */
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 56px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo {
-    font-family: var(--font-display);
-    font-size: 20px;
-    color: var(--accent);
-    letter-spacing: -0.3px;
-  }
-  .logo span { color: var(--text-soft); font-size: 13px; font-family: var(--font-body); font-weight: 400; margin-left: 10px; }
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card-title{font-family:var(--font-display);font-size:17px;color:var(--text);margin-bottom:16px}
 
-  /* ── TABS ── */
-  .tabs {
-    display: flex;
-    gap: 4px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-  }
-  .tab-btn {
-    background: none; border: none; color: var(--muted);
-    font-family: var(--font-body); font-size: 13px; font-weight: 500;
-    padding: 12px 16px; cursor: pointer; position: relative;
-    transition: color .15s;
-  }
-  .tab-btn.active { color: var(--accent); }
-  .tab-btn.active::after {
-    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-    background: var(--accent); border-radius: 2px 2px 0 0;
-  }
-  .tab-btn:hover:not(.active) { color: var(--text); }
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+.form-grid.full{grid-template-columns:1fr}
+@media(max-width:600px){.form-grid,.form-grid.cols-3{grid-template-columns:1fr}}
+label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text-soft);margin-bottom:5px}
+input,select,textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:8px 10px;outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--surface)}
 
-  /* ── LAYOUT ── */
-  .main { padding: 24px; max-width: 960px; margin: 0 auto; }
-  .view { display: none; }
-  .view.active { display: block; }
+/* ITEMS */
+.items-header{display:grid;grid-template-columns:2fr 1.2fr 1fr 100px 36px;gap:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.item-row{display:grid;grid-template-columns:2fr 1.2fr 1fr 100px 36px;gap:8px;align-items:center;margin-bottom:8px}
+@media(max-width:600px){.items-header{display:none}.item-row{grid-template-columns:1fr 1fr;gap:6px}.item-row .item-desc{grid-column:1/-1}.item-row .item-del{grid-column:2;justify-self:end}}
 
-  /* ── CARDS ── */
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 16px;
-  }
-  .card-title {
-    font-family: var(--font-display);
-    font-size: 17px;
-    color: var(--text);
-    margin-bottom: 16px;
-  }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:6px;cursor:pointer;font-family:var(--font-body);font-weight:500;font-size:13px;padding:8px 16px;transition:opacity .15s,transform .1s}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--accent);color:#0f1117}
+.btn-secondary{background:var(--border);color:var(--text)}
+.btn-ghost{background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn-danger{background:color-mix(in srgb,var(--danger) 20%,transparent);color:var(--danger)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn:hover{opacity:.85}
+.btn-icon{width:32px;height:32px;padding:0;background:var(--border);color:var(--text-soft)}
+.btn-icon:hover{color:var(--danger);background:color-mix(in srgb,var(--danger) 20%,transparent)}
 
-  /* ── FORM ── */
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-  .form-grid.full   { grid-template-columns: 1fr; }
-  @media (max-width: 600px) {
-    .form-grid, .form-grid.cols-3 { grid-template-columns: 1fr; }
-  }
+/* TOTALS */
+.totals-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:16px}
+.totals-preview h4{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px}
+.totals-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px}
+.total-line{display:flex;justify-content:space-between;font-size:13px}
+.total-line .tl-label{color:var(--text-soft)}
+.total-line .tl-val{font-family:var(--font-mono);color:var(--accent2);font-size:13px}
+.total-grand{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-weight:600;font-size:15px}
+.total-grand .tl-val{color:var(--accent);font-family:var(--font-mono);font-size:16px}
 
-  label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .6px;
-    color: var(--text-soft);
-    margin-bottom: 5px;
-  }
-  input, select, textarea {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 14px;
-    padding: 8px 10px;
-    outline: none;
-    transition: border-color .15s;
-  }
-  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-  select option { background: var(--surface); }
-  textarea { resize: vertical; min-height: 60px; }
+/* ENTRY CARDS */
+.entry-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;cursor:pointer;transition:border-color .15s}
+.entry-card:hover{border-color:var(--accent)}
+.entry-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.entry-patient{font-size:15px;font-weight:600;color:var(--text)}
+.entry-owner{font-size:12px;color:var(--text-soft)}
+.entry-fact{font-family:var(--font-mono);font-size:11px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);padding:2px 8px;border-radius:4px;white-space:nowrap}
+.entry-doctor-tag{font-size:11px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent2) 15%,transparent);color:var(--accent2);font-weight:600}
+.entry-total-badge{font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--accent2);white-space:nowrap}
+.entry-items-preview{margin-top:10px;display:flex;flex-wrap:wrap;gap:5px}
+.cat-badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent)}
+.pct-label{font-family:var(--font-mono);font-size:12px;color:var(--accent2)}
 
-  /* ── ITEMS TABLE (dentro del formulario) ── */
-  .items-header {
-    display: grid;
-    grid-template-columns: 2fr 1.2fr 1fr 100px 36px;
-    gap: 8px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .6px;
-    color: var(--muted);
-    padding: 0 0 6px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 8px;
-  }
-  .item-row {
-    display: grid;
-    grid-template-columns: 2fr 1.2fr 1fr 100px 36px;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-  @media (max-width: 600px) {
-    .items-header { display: none; }
-    .item-row { grid-template-columns: 1fr 1fr; gap: 6px; }
-    .item-row .item-desc { grid-column: 1 / -1; }
-    .item-row .item-del  { grid-column: 2; justify-self: end; }
-  }
+/* SUMMARY */
+.summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px}
+.stat-val{font-family:var(--font-mono);font-size:20px;font-weight:600;color:var(--accent2)}
+.stat-val.accent{color:var(--accent)}
+.stat-val.small{font-size:15px}
+.breakdown-table{width:100%;border-collapse:collapse}
+.breakdown-table th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border)}
+.breakdown-table td{padding:9px 10px;font-size:13px;border-bottom:1px solid color-mix(in srgb,var(--border) 50%,transparent)}
+.breakdown-table tr:last-child td{border-bottom:none}
+.breakdown-table td:last-child{font-family:var(--font-mono);color:var(--accent2);text-align:right}
+.breakdown-table td:nth-child(3){color:var(--text-soft);font-size:12px;text-align:right}
 
-  .cat-badge {
-    display: inline-block;
-    padding: 2px 8px; border-radius: 999px;
-    font-size: 11px; font-weight: 600;
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    color: var(--accent);
-  }
-  .pct-label {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--accent2);
-  }
+/* ADMIN — DOCTORS TABLE */
+.doctors-table{width:100%;border-collapse:collapse}
+.doctors-table th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border)}
+.doctors-table td{padding:10px;font-size:13px;border-bottom:1px solid color-mix(in srgb,var(--border) 40%,transparent);vertical-align:middle}
+.doctors-table tr:last-child td{border-bottom:none}
+.pct-input-sm{width:60px;text-align:center;padding:5px 6px;font-size:13px;font-family:var(--font-mono)}
 
-  /* ── BUTTONS ── */
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    gap: 6px;
-    border: none; border-radius: 6px; cursor: pointer;
-    font-family: var(--font-body); font-weight: 500; font-size: 13px;
-    padding: 8px 16px; transition: opacity .15s, transform .1s;
-  }
-  .btn:active { transform: scale(.98); }
-  .btn-primary   { background: var(--accent);  color: #0f1117; }
-  .btn-secondary { background: var(--border);  color: var(--text); }
-  .btn-ghost     { background: transparent;    color: var(--text-soft); border: 1px solid var(--border); }
-  .btn-danger    { background: color-mix(in srgb, var(--danger) 20%, transparent); color: var(--danger); }
-  .btn-sm { padding: 5px 10px; font-size: 12px; }
-  .btn:hover { opacity: .85; }
-  .btn-icon { width: 32px; height: 32px; padding: 0; background: var(--border); color: var(--text-soft); }
-  .btn-icon:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 20%, transparent); }
+/* SYNC */
+.sync-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;margin-bottom:16px;font-size:13px;flex-wrap:wrap}
+.sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sync-dot.ok{background:var(--success);box-shadow:0 0 6px var(--success)}
+.sync-dot.error{background:var(--danger)}
+.sync-dot.pending{background:var(--accent2);animation:pulse .8s infinite alternate}
+.sync-dot.off{background:var(--muted)}
+@keyframes pulse{from{opacity:.4}to{opacity:1}}
+.sync-msg{color:var(--text-soft);flex:1}
+.sync-time{color:var(--muted);font-size:11px;font-family:var(--font-mono)}
 
-  /* ── PREVIEW TOTALES ── */
-  .totals-preview {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    margin-top: 16px;
-  }
-  .totals-preview h4 {
-    font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: .6px; color: var(--muted); margin-bottom: 10px;
-  }
-  .totals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; }
-  .total-line { display: flex; justify-content: space-between; font-size: 13px; }
-  .total-line .tl-label { color: var(--text-soft); }
-  .total-line .tl-val   { font-family: var(--font-mono); color: var(--accent2); font-size: 13px; }
-  .total-grand {
-    margin-top: 10px; padding-top: 10px;
-    border-top: 1px solid var(--border);
-    display: flex; justify-content: space-between;
-    font-weight: 600; font-size: 15px;
-  }
-  .total-grand .tl-val { color: var(--accent); font-family: var(--font-mono); font-size: 16px; }
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:12px;width:100%;max-width:660px;max-height:90vh;overflow-y:auto;padding:24px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-header h2{font-family:var(--font-display);font-size:20px}
 
-  /* ── LISTA DE REGISTROS ── */
-  .entry-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    margin-bottom: 12px;
-    cursor: pointer;
-    transition: border-color .15s;
-    position: relative;
-  }
-  .entry-card:hover { border-color: var(--accent); }
-  .entry-header {
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-  }
-  .entry-meta { display: flex; flex-direction: column; gap: 2px; }
-  .entry-patient { font-size: 15px; font-weight: 600; color: var(--text); }
-  .entry-owner   { font-size: 12px; color: var(--text-soft); }
-  .entry-fact    {
-    font-family: var(--font-mono); font-size: 11px;
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-    color: var(--accent); padding: 2px 8px; border-radius: 4px; white-space: nowrap;
-  }
-  .entry-total-badge {
-    font-family: var(--font-mono); font-size: 16px;
-    font-weight: 600; color: var(--accent2);
-    white-space: nowrap;
-  }
-  .entry-items-preview {
-    margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px;
-  }
-  .entry-actions {
-    display: flex; gap: 6px; margin-top: 12px;
-  }
+/* MISC */
+.month-bar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.month-bar label{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.month-bar input[type=month]{width:auto;max-width:180px}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{padding:4px 12px;border-radius:999px;font-size:12px;font-weight:500;border:1px solid var(--border);background:transparent;color:var(--text-soft);cursor:pointer;transition:all .15s}
+.chip.active{background:var(--accent);border-color:var(--accent);color:#0f1117}
+.chip:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.row-between{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.text-muted{color:var(--muted);font-size:12px}
+.mt-8{margin-top:8px}.mt-16{margin-top:16px}
+.scrollable-x{overflow-x:auto}
+.empty{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty p{font-size:15px;margin-bottom:8px;color:var(--text-soft)}
 
-  /* ── RESUMEN MENSUAL ── */
-  .summary-bar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  .stat-box {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-  }
-  .stat-label {
-    font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: .6px; color: var(--muted); margin-bottom: 6px;
-  }
-  .stat-val {
-    font-family: var(--font-mono); font-size: 20px; font-weight: 600;
-    color: var(--accent2);
-  }
-  .stat-val.accent { color: var(--accent); }
-  .stat-val.small  { font-size: 15px; }
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 20px;font-size:13px;color:var(--text);transition:transform .3s ease;z-index:300;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+#toast.show{transform:translateX(-50%) translateY(0)}
 
-  .breakdown-table {
-    width: 100%; border-collapse: collapse;
-  }
-  .breakdown-table th {
-    text-align: left; font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: .6px;
-    color: var(--muted); padding: 8px 10px;
-    border-bottom: 1px solid var(--border);
-  }
-  .breakdown-table td {
-    padding: 9px 10px; font-size: 13px; border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-  }
-  .breakdown-table tr:last-child td { border-bottom: none; }
-  .breakdown-table td:last-child { font-family: var(--font-mono); color: var(--accent2); text-align: right; }
-  .breakdown-table td:nth-child(3) { color: var(--text-soft); font-size: 12px; text-align: right; }
-
-  /* ── EMPTY STATE ── */
-  .empty {
-    text-align: center; padding: 48px 24px; color: var(--muted);
-  }
-  .empty svg { opacity: .3; margin-bottom: 12px; }
-  .empty p { font-size: 15px; margin-bottom: 8px; color: var(--text-soft); }
-  .empty small { font-size: 12px; }
-
-  /* ── MONTH SELECTOR ── */
-  .month-bar {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .month-bar label { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
-  .month-bar input[type=month] { width: auto; max-width: 180px; }
-
-  /* ── MODAL ── */
-  .modal-backdrop {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.65); z-index: 200;
-    align-items: center; justify-content: center;
-    padding: 16px;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    width: 100%; max-width: 640px;
-    max-height: 90vh; overflow-y: auto;
-    padding: 24px;
-  }
-  .modal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 20px;
-  }
-  .modal-header h2 { font-family: var(--font-display); font-size: 20px; }
-
-  /* ── CHIP FILTER ── */
-  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-  .chip {
-    padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 500;
-    border: 1px solid var(--border); background: transparent; color: var(--text-soft);
-    cursor: pointer; transition: all .15s;
-  }
-  .chip.active { background: var(--accent); border-color: var(--accent); color: #0f1117; }
-  .chip:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
-
-  /* ── MISC ── */
-  .divider { height: 1px; background: var(--border); margin: 16px 0; }
-  .row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .text-muted { color: var(--muted); font-size: 12px; }
-  .mt-8  { margin-top: 8px; }
-  .mt-16 { margin-top: 16px; }
-  .badge-cx { background: color-mix(in srgb, #f6ad55 15%, transparent); color: #f6ad55; }
-  .scrollable-x { overflow-x: auto; }
-
-  /* ── SYNC STATUS ── */
-  .sync-bar {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 10px 16px; margin-bottom: 16px;
-    font-size: 13px;
-  }
-  .sync-dot {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  }
-  .sync-dot.ok      { background: var(--success); box-shadow: 0 0 6px var(--success); }
-  .sync-dot.error   { background: var(--danger); }
-  .sync-dot.pending { background: var(--accent2); animation: pulse .8s infinite alternate; }
-  .sync-dot.off     { background: var(--muted); }
-  @keyframes pulse { from { opacity:.4 } to { opacity:1 } }
-  .sync-msg { color: var(--text-soft); flex: 1; }
-  .sync-time { color: var(--muted); font-size: 11px; font-family: var(--font-mono); }
-
-  /* ── TOAST ── */
-  #toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 20px;
-    font-size: 13px; color: var(--text);
-    transition: transform .3s ease; z-index: 300; white-space: nowrap;
-    box-shadow: 0 4px 20px rgba(0,0,0,.4);
-  }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* Print */
-  @media print {
-    header, .tabs, .month-bar .btn, .entry-actions { display: none !important; }
-    body { background: white; color: #111; }
-    .card, .entry-card, .stat-box { border-color: #ccc; background: white; }
-    .stat-val, .entry-total-badge, .tl-val, .breakdown-table td:last-child { color: #111 !important; }
-  }
+@media print{header,.tabs,.month-bar .btn,.entry-actions,#login-screen{display:none!important}body{background:white;color:#111}.card,.entry-card,.stat-box{border-color:#ccc;background:white}}
 </style>
 </head>
 <body>
 
+<!-- ════ LOGIN ════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Animal Center</div>
+    <div class="login-sub">Comisiones Médico — Iniciar sesión</div>
+    <label>Usuario</label>
+    <input type="text" id="login-user" placeholder="usuario" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <label>Contraseña</label>
+    <input type="password" id="login-pass" placeholder="contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <div class="login-error" id="login-error">Usuario o contraseña incorrectos</div>
+    <button class="btn-login" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- ════ APP ════ -->
+<div id="app" style="display:none">
 <header>
-  <div class="logo">Animal Center <span>— Comisiones Médico</span></div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <div id="doctorName" style="font-size:13px; color:var(--text-soft)"></div>
-    <button class="btn btn-ghost btn-sm" onclick="syncNow()" id="sync-btn" title="Sincronizar con Google Sheets">↕️ Sync</button>
+  <div class="logo">Animal Center <span>— Comisiones</span></div>
+  <div class="header-right">
+    <div class="user-badge">
+      <div class="user-avatar" id="h-avatar">?</div>
+      <span id="h-name" style="font-size:13px"></span>
+      <span class="role-pill" id="h-role"></span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="syncNow()" id="sync-btn">↕️ Sync</button>
+    <button class="btn btn-ghost btn-sm" onclick="doLogout()">Salir</button>
   </div>
 </header>
 
-<div id="toast"></div>
-
-<div class="tabs">
+<div class="tabs" id="nav-tabs">
   <button class="tab-btn active" onclick="switchTab('registro')">➕ Nuevo registro</button>
   <button class="tab-btn" onclick="switchTab('listado')">📋 Registros</button>
-  <button class="tab-btn" onclick="switchTab('resumen')">📊 Resumen mensual</button>
-
+  <button class="tab-btn" onclick="switchTab('resumen')">📊 Resumen</button>
+  <!-- admin-only tabs injected by JS -->
 </div>
 
 <div class="main">
 
-  <!-- ════════════════ TAB: REGISTRO ════════════════ -->
+  <!-- ════ NUEVO REGISTRO ════ -->
   <div id="view-registro" class="view active">
     <div class="card">
       <div class="card-title">Datos del paciente</div>
       <div class="form-grid cols-3">
-        <div>
-          <label>Nombre del paciente</label>
-          <input type="text" id="inp-patient" placeholder="Ej: Mimi" />
-        </div>
-        <div>
-          <label>Propietario</label>
-          <input type="text" id="inp-owner" placeholder="Ej: Sharoom García" />
-        </div>
-        <div>
-          <label>N° Factura</label>
-          <input type="text" id="inp-fact" placeholder="Ej: 53527" />
-        </div>
+        <div><label>Paciente</label><input type="text" id="inp-patient" placeholder="Nombre del animal"/></div>
+        <div><label>Propietario</label><input type="text" id="inp-owner" placeholder="Nombre del dueño"/></div>
+        <div><label>N° Factura</label><input type="text" id="inp-fact" placeholder="Ej: 53527"/></div>
       </div>
       <div class="form-grid mt-8">
-        <div>
-          <label>Fecha</label>
-          <input type="date" id="inp-date" />
-        </div>
-        <div>
-          <label>Notas (opcional)</label>
-          <input type="text" id="inp-notes" placeholder="Observaciones" />
-        </div>
+        <div><label>Fecha</label><input type="date" id="inp-date"/></div>
+        <div><label>Notas (opcional)</label><input type="text" id="inp-notes" placeholder="Observaciones"/></div>
       </div>
     </div>
-
     <div class="card">
       <div class="row-between" style="margin-bottom:14px">
         <div class="card-title" style="margin:0">Servicios y productos</div>
         <button class="btn btn-primary btn-sm" onclick="addItem()">+ Agregar ítem</button>
       </div>
-
       <div class="items-header">
-        <span>Descripción</span>
-        <span>Categoría</span>
-        <span>Valor</span>
-        <span>% / Comisión</span>
-        <span></span>
+        <span>Descripción</span><span>Categoría</span><span>Valor</span><span>% / Comisión</span><span></span>
       </div>
-
       <div id="items-container"></div>
-
       <div class="row-between mt-16">
         <button class="btn btn-ghost btn-sm" onclick="addItem()">+ Añadir otro ítem</button>
         <span id="items-count" class="text-muted">0 ítems</span>
       </div>
-
       <div id="totals-preview" class="totals-preview" style="display:none">
         <h4>Vista previa de comisiones</h4>
         <div class="totals-grid" id="totals-grid"></div>
         <div class="total-grand">
-          <span>Total comisión médico</span>
+          <span>Total comisión</span>
           <span class="tl-val" id="grand-total">$0</span>
         </div>
       </div>
     </div>
-
     <div class="row-between">
-      <button class="btn btn-secondary" onclick="clearForm()">Limpiar formulario</button>
+      <button class="btn btn-secondary" onclick="clearForm()">Limpiar</button>
       <button class="btn btn-primary" onclick="saveEntry()">💾 Guardar registro</button>
     </div>
   </div>
 
-  <!-- ════════════════ TAB: LISTADO ════════════════ -->
+  <!-- ════ LISTADO ════ -->
   <div id="view-listado" class="view">
     <div id="sync-bar" class="sync-bar">
       <span class="sync-dot off" id="sync-dot"></span>
-      <span class="sync-msg" id="sync-msg">Sin sincronizar — configura la URL del Apps Script en ⚙️ Config</span>
+      <span class="sync-msg" id="sync-msg">Listo para sincronizar</span>
       <span class="sync-time" id="sync-time"></span>
       <button class="btn btn-ghost btn-sm" onclick="syncNow()">↕️ Sincronizar</button>
       <button class="btn btn-ghost btn-sm" onclick="loadFromSheets()">⬇️ Cargar</button>
     </div>
     <div class="month-bar">
       <label>Mes</label>
-      <input type="month" id="filter-month-list" onchange="renderList()" />
-      <button class="btn btn-ghost btn-sm" onclick="clearMonthFilter()">Ver todos</button>
+      <input type="month" id="filter-month-list" onchange="renderList()"/>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filter-month-list').value='';renderList()">Ver todos</button>
     </div>
-    <div class="filter-row" id="filter-chips">
-      <span class="chip active" data-filter="all" onclick="setFilter('all',this)">Todos</span>
-    </div>
+    <div class="filter-row" id="filter-chips"></div>
     <div id="entries-list"></div>
   </div>
 
-  <!-- ════════════════ TAB: RESUMEN ════════════════ -->
+  <!-- ════ RESUMEN ════ -->
   <div id="view-resumen" class="view">
     <div class="month-bar">
       <label>Mes</label>
-      <input type="month" id="filter-month-summary" onchange="renderSummary()" />
+      <input type="month" id="filter-month-summary" onchange="renderSummary()"/>
     </div>
     <div id="summary-content"></div>
   </div>
 
-            <div class="mt-16">
-        <button class="btn btn-primary btn-sm" onclick="saveConfig()">Guardar</button>
-      </div>
-    </div>
-
+  <!-- ════ ADMIN: MÉDICOS ════ -->
+  <div id="view-medicos" class="view">
     <div class="card">
-      <div class="card-title">Porcentajes de comisión</div>
-      <div id="pct-grid" class="form-grid"></div>
-      <div class="mt-16 row-between">
-        <button class="btn btn-primary btn-sm" onclick="savePcts()">Guardar porcentajes</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetPcts()">Restablecer predeterminados</button>
+      <div class="card-title">Médicos registrados</div>
+      <div class="scrollable-x">
+        <table class="doctors-table" id="doctors-table"></table>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title" style="color:var(--danger)">Zona peligrosa</div>
-      <button class="btn btn-danger btn-sm" onclick="clearAllData()">🗑️ Borrar todos los datos</button>
+      <div class="mt-16">
+        <button class="btn btn-primary btn-sm" onclick="openAddDoctor()">+ Nuevo médico</button>
+      </div>
     </div>
   </div>
 
-</div><!-- /main -->
+  <!-- ════ ADMIN: TODOS LOS REGISTROS ════ -->
+  <div id="view-admin-registros" class="view">
+    <div class="month-bar">
+      <label>Mes</label>
+      <input type="month" id="filter-month-admin" onchange="renderAdminRegistros()"/>
+      <label style="margin-left:12px">Médico</label>
+      <select id="filter-doctor-admin" onchange="renderAdminRegistros()" style="width:auto;max-width:200px">
+        <option value="">Todos</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="exportExcelAdmin()">📥 Excel</button>
+    </div>
+    <div id="admin-registros-list"></div>
+  </div>
 
-<!-- ════════ MODAL DETALLE ════════ -->
-<div class="modal-backdrop" id="modal-backdrop" onclick="closeModal(event)">
-  <div class="modal" id="modal-content">
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
     <div class="modal-header">
       <h2 id="modal-title">Detalle</h2>
       <button class="btn btn-icon" onclick="closeModal()">✕</button>
@@ -541,104 +320,175 @@
   </div>
 </div>
 
+<div id="toast"></div>
+
 <script>
-/* ══════════════════════════════════════════════
-   ESTADO Y CONSTANTES
-══════════════════════════════════════════════ */
+/* ══════════════════════════════════
+   CONSTANTES
+══════════════════════════════════ */
+const APPS_URL = 'https://script.google.com/macros/s/AKfycbxxGlG0RzuUnhF6jBtsstGQSCtEvIK4QvRA6vdPNLcGKM3usQr1fQI4p3nXVELClLPx/exec';
+
 const CATEGORIES = [
-  { id:'servicios',      label:'Servicios',       pct:30 },
-  { id:'cirugia',        label:'Cirugía',          pct:30 },
-  { id:'hospitalizacion',label:'Hospitalización',  pct:20 },
-  { id:'urocultivo',     label:'Urocultivo',        pct:20 },
-  { id:'pcr',            label:'PCR',               pct:10 },
-  { id:'medicacion',     label:'Medicación',        pct:20 },
-  { id:'inyectologia',   label:'Inyectología',      pct:20 },
-  { id:'productos',      label:'Productos',         pct:10 },
+  {id:'servicios',       label:'Servicios',        defaultPct:30},
+  {id:'cirugia',         label:'Cirugía',           defaultPct:30},
+  {id:'hospitalizacion', label:'Hospitalización',   defaultPct:20},
+  {id:'urocultivo',      label:'Urocultivo',        defaultPct:20},
+  {id:'pcr',             label:'PCR',               defaultPct:10},
+  {id:'medicacion',      label:'Medicación',        defaultPct:20},
+  {id:'inyectologia',    label:'Inyectología',      defaultPct:20},
+  {id:'productos',       label:'Productos',         defaultPct:10},
 ];
 
 const CAT_COLORS = {
-  servicios:      '#4fd1c5',
-  cirugia:        '#f6ad55',
-  hospitalizacion:'#b794f4',
-  urocultivo:     '#63b3ed',
-  pcr:            '#fc8181',
-  medicacion:     '#68d391',
-  inyectologia:   '#faf089',
-  productos:      '#a0aec0',
+  servicios:'#4fd1c5', cirugia:'#f6ad55', hospitalizacion:'#b794f4',
+  urocultivo:'#63b3ed', pcr:'#fc8181', medicacion:'#68d391',
+  inyectologia:'#faf089', productos:'#a0aec0',
 };
 
-let entries  = JSON.parse(localStorage.getItem('ac_entries')  || '[]');
-let config   = JSON.parse(localStorage.getItem('ac_config')   || '{}');
-let pcts     = JSON.parse(localStorage.getItem('ac_pcts')     || 'null');
+// Usuarios por defecto — admin siempre existe
+// doctores se guardan en localStorage bajo 'ac_doctors'
+const ADMIN_USER = { username:'admin', password:'AnimalCenter2024', role:'admin', name:'Administrador' };
 
-// ── Configuración fija ──
-config.appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxxGlG0RzuUnhF6jBtsstGQSCtEvIK4QvRA6vdPNLcGKM3usQr1fQI4p3nXVELClLPx/exec';
-localStorage.setItem('ac_config', JSON.stringify(config));
-let itemRows = [];
-let filterCat = 'all';
+/* ══════════════════════════════════
+   ESTADO
+══════════════════════════════════ */
+let currentUser  = null;
+let allEntries   = JSON.parse(localStorage.getItem('ac_entries') || '[]');
+let doctors      = JSON.parse(localStorage.getItem('ac_doctors') || JSON.stringify([
+  { id:'doc_wilmer',  name:'Wilmer Rodríguez', username:'wilmer',  password:'wilmer123',
+    pcts:{servicios:30,cirugia:30,hospitalizacion:20,urocultivo:20,pcr:10,medicacion:20,inyectologia:20,productos:10} },
+  { id:'doc_adrian',  name:'Adrián Méndez',    username:'adrian',  password:'adrian123',
+    pcts:{servicios:30,cirugia:30,hospitalizacion:20,urocultivo:20,pcr:10,medicacion:20,inyectologia:20,productos:10} },
+]));
+let filterCat    = 'all';
+let itemRows     = [];
 
-if (!pcts) pcts = Object.fromEntries(CATEGORIES.map(c => [c.id, c.pct]));
+function saveEntries()  { localStorage.setItem('ac_entries',  JSON.stringify(allEntries)); }
+function saveDoctors()  { localStorage.setItem('ac_doctors',  JSON.stringify(doctors)); }
 
-/* ══════════════════════════════════════════════
+/* ══════════════════════════════════
+   AUTENTICACIÓN
+══════════════════════════════════ */
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  document.getElementById('login-error').style.display = 'none';
+
+  if (u === ADMIN_USER.username && p === ADMIN_USER.password) {
+    currentUser = { ...ADMIN_USER };
+  } else {
+    const doc = doctors.find(d => d.username === u && d.password === p);
+    if (doc) currentUser = { ...doc, role:'doctor' };
+  }
+
+  if (!currentUser) {
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initApp();
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+/* ══════════════════════════════════
+   INIT
+══════════════════════════════════ */
+function initApp() {
+  // Header
+  const initials = currentUser.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('h-avatar').textContent = initials;
+  document.getElementById('h-name').textContent = currentUser.name;
+  const rolePill = document.getElementById('h-role');
+  rolePill.textContent = currentUser.role === 'admin' ? 'Admin' : 'Médico';
+  rolePill.className = 'role-pill ' + currentUser.role;
+
+  // Tabs según rol
+  const tabs = document.getElementById('nav-tabs');
+  if (currentUser.role === 'admin') {
+    if (!document.getElementById('tab-medicos')) {
+      tabs.innerHTML += `<button class="tab-btn" id="tab-medicos" onclick="switchTab('medicos')">👥 Médicos</button>`;
+      tabs.innerHTML += `<button class="tab-btn" id="tab-admin-reg" onclick="switchTab('admin-registros')">📋 Todos los registros</button>`;
+    }
+  }
+
+  document.getElementById('inp-date').value = todayStr();
+  const ym = new Date().toISOString().slice(0,7);
+  document.getElementById('filter-month-list').value    = ym;
+  document.getElementById('filter-month-summary').value = ym;
+  const adminMon = document.getElementById('filter-month-admin');
+  if (adminMon) adminMon.value = ym;
+
+  updateSyncBar();
+  switchTab('registro');
+}
+
+/* ══════════════════════════════════
    TABS
-══════════════════════════════════════════════ */
+══════════════════════════════════ */
 function switchTab(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('view-' + name).classList.add('active');
-  event.currentTarget.classList.add('active');
-  if (name === 'listado')  renderList();
-  if (name === 'resumen')  renderSummary();
+  const view = document.getElementById('view-' + name);
+  if (view) view.classList.add('active');
+  const btn = document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`);
+  if (btn) btn.classList.add('active');
+  if (name === 'listado')         renderList();
+  if (name === 'resumen')         renderSummary();
+  if (name === 'medicos')         renderDoctors();
+  if (name === 'admin-registros') renderAdminRegistros();
 }
 
-/* ══════════════════════════════════════════════
-   ITEMS (formulario)
-══════════════════════════════════════════════ */
+/* ══════════════════════════════════
+   PORCENTAJES DEL USUARIO ACTUAL
+══════════════════════════════════ */
+function myPcts() {
+  if (currentUser.role === 'admin') {
+    return Object.fromEntries(CATEGORIES.map(c => [c.id, c.defaultPct]));
+  }
+  return currentUser.pcts || Object.fromEntries(CATEGORIES.map(c => [c.id, c.defaultPct]));
+}
+
+/* ══════════════════════════════════
+   ITEMS
+══════════════════════════════════ */
 function addItem(desc='', cat='servicios', val='') {
-  const id = Date.now() + Math.random();
+  const id  = Date.now() + Math.random();
+  const pcts = myPcts();
   itemRows.push(id);
   const cont = document.getElementById('items-container');
-  const row = document.createElement('div');
+  const row  = document.createElement('div');
   row.className = 'item-row';
   row.dataset.id = id;
-
   const catOpts = CATEGORIES.map(c =>
     `<option value="${c.id}" ${c.id===cat?'selected':''}>${c.label}</option>`
   ).join('');
-
-  const pct = pcts[cat] || 0;
-
   row.innerHTML = `
-    <div class="item-desc">
-      <input type="text" placeholder="Descripción" value="${desc}"
-             onchange="updateRow('${id}')" oninput="updateRow('${id}')" />
-    </div>
-    <div>
-      <select onchange="onCatChange('${id}',this)">
-        ${catOpts}
-      </select>
-    </div>
-    <div>
-      <input type="number" min="0" step="1000" placeholder="0" value="${val}"
-             onchange="calcTotals()" oninput="calcTotals()" />
-    </div>
+    <div class="item-desc"><input type="text" placeholder="Descripción" value="${desc}" oninput="calcTotals()"/></div>
+    <div><select onchange="onCatChange('${id}',this)">${catOpts}</select></div>
+    <div><input type="number" min="0" step="1000" placeholder="0" value="${val}" oninput="calcTotals()"/></div>
     <div style="display:flex;align-items:center;gap:6px">
-      <span class="pct-label" id="pct-${id}">${pct}%</span>
+      <span class="pct-label" id="pct-${id}">${pcts[cat]||0}%</span>
       <span style="color:var(--text-soft);font-family:var(--font-mono);font-size:12px" id="com-${id}">$0</span>
     </div>
-    <button class="btn btn-icon" onclick="removeItem('${id}')">✕</button>
-  `;
+    <button class="btn btn-icon" onclick="removeItem('${id}')">✕</button>`;
   cont.appendChild(row);
   calcTotals();
 }
 
 function onCatChange(id, sel) {
-  const pct = pcts[sel.value] || 0;
-  document.getElementById('pct-' + id).textContent = pct + '%';
+  const pcts = myPcts();
+  const el = document.getElementById('pct-' + id);
+  if (el) el.textContent = (pcts[sel.value]||0) + '%';
   calcTotals();
 }
-
-function updateRow(id) { calcTotals(); }
 
 function removeItem(id) {
   const row = document.querySelector(`.item-row[data-id="${id}"]`);
@@ -648,8 +498,8 @@ function removeItem(id) {
 }
 
 function getItemsData() {
-  const rows = document.querySelectorAll('.item-row');
-  return Array.from(rows).map(row => {
+  const pcts = myPcts();
+  return Array.from(document.querySelectorAll('.item-row')).map(row => {
     const inputs = row.querySelectorAll('input');
     const sel    = row.querySelector('select');
     const desc   = inputs[0].value.trim();
@@ -662,9 +512,9 @@ function getItemsData() {
 }
 
 function calcTotals() {
-  const rows = document.querySelectorAll('.item-row');
+  const pcts    = myPcts();
+  const rows    = document.querySelectorAll('.item-row');
   let catTotals = {};
-
   rows.forEach(row => {
     const inputs = row.querySelectorAll('input');
     const sel    = row.querySelector('select');
@@ -673,122 +523,95 @@ function calcTotals() {
     const cat    = sel ? sel.value : 'servicios';
     const pct    = pcts[cat] || 0;
     const com    = Math.round(val * pct / 100);
-    if (document.getElementById('com-' + id))
-      document.getElementById('com-' + id).textContent = '$' + com.toLocaleString('es-CO');
+    const comEl  = document.getElementById('com-' + id);
+    if (comEl) comEl.textContent = '$' + com.toLocaleString('es-CO');
     if (val > 0) catTotals[cat] = (catTotals[cat] || 0) + com;
   });
-
-  const count = rows.length;
-  document.getElementById('items-count').textContent = count + ' ítem' + (count !== 1 ? 's' : '');
-
-  const previewEl = document.getElementById('totals-preview');
-  const gridEl    = document.getElementById('totals-grid');
-  const grandEl   = document.getElementById('grand-total');
-
-  const totalCom = Object.values(catTotals).reduce((a,b) => a+b, 0);
-
-  if (Object.keys(catTotals).length === 0) {
-    previewEl.style.display = 'none'; return;
-  }
-  previewEl.style.display = 'block';
-
-  gridEl.innerHTML = Object.entries(catTotals).map(([cat, com]) => {
-    const catObj = CATEGORIES.find(c => c.id === cat);
-    return `<div class="total-line">
-      <span class="tl-label">${catObj ? catObj.label : cat} (${pcts[cat]}%)</span>
-      <span class="tl-val">$${com.toLocaleString('es-CO')}</span>
-    </div>`;
+  document.getElementById('items-count').textContent = rows.length + ' ítem' + (rows.length !== 1 ? 's' : '');
+  const prev = document.getElementById('totals-preview');
+  const totalCom = Object.values(catTotals).reduce((a,b)=>a+b,0);
+  if (!Object.keys(catTotals).length) { prev.style.display='none'; return; }
+  prev.style.display = 'block';
+  document.getElementById('totals-grid').innerHTML = Object.entries(catTotals).map(([cat,com]) => {
+    const obj = CATEGORIES.find(c=>c.id===cat);
+    return `<div class="total-line"><span class="tl-label">${obj?obj.label:cat} (${pcts[cat]}%)</span><span class="tl-val">$${com.toLocaleString('es-CO')}</span></div>`;
   }).join('');
-
-  grandEl.textContent = '$' + totalCom.toLocaleString('es-CO');
+  document.getElementById('grand-total').textContent = '$' + totalCom.toLocaleString('es-CO');
 }
 
-/* ══════════════════════════════════════════════
-   GUARDAR / LIMPIAR
-══════════════════════════════════════════════ */
+/* ══════════════════════════════════
+   GUARDAR REGISTRO
+══════════════════════════════════ */
 function saveEntry() {
   const patient = document.getElementById('inp-patient').value.trim();
   const owner   = document.getElementById('inp-owner').value.trim();
   const fact    = document.getElementById('inp-fact').value.trim();
   const date    = document.getElementById('inp-date').value;
   const notes   = document.getElementById('inp-notes').value.trim();
-
   if (!patient) { alert('Ingresa el nombre del paciente'); return; }
   if (!fact)    { alert('Ingresa el número de factura');   return; }
-
   const items = getItemsData();
   if (!items.length) { alert('Agrega al menos un ítem'); return; }
-
   const catTotals = {};
-  items.forEach(it => {
-    catTotals[it.cat] = (catTotals[it.cat] || 0) + it.com;
-  });
-  const totalCom = Object.values(catTotals).reduce((a,b)=>a+b,0);
-  const totalVal = items.reduce((a,b)=>a+b.val, 0);
-
+  items.forEach(it => { catTotals[it.cat] = (catTotals[it.cat]||0) + it.com; });
   const entry = {
-    id: Date.now(),
-    patient, owner, fact, date: date || todayStr(),
-    notes, items, catTotals, totalCom, totalVal
+    id: Date.now(), doctorId: currentUser.id || 'admin',
+    doctorName: currentUser.name,
+    patient, owner, fact, date: date || todayStr(), notes,
+    items, catTotals,
+    totalCom: Object.values(catTotals).reduce((a,b)=>a+b,0),
+    totalVal:  items.reduce((a,b)=>a+b.val,0)
   };
-
-  entries.push(entry);
-  save();
+  allEntries.push(entry);
+  saveEntries();
   clearForm();
-  alert('✅ Registro guardado correctamente');
+  showToast('✅ Registro guardado');
 }
 
 function clearForm() {
-  ['inp-patient','inp-owner','inp-fact','inp-notes'].forEach(id =>
-    document.getElementById(id).value = ''
-  );
+  ['inp-patient','inp-owner','inp-fact','inp-notes'].forEach(id => document.getElementById(id).value='');
   document.getElementById('inp-date').value = todayStr();
   document.getElementById('items-container').innerHTML = '';
   itemRows = [];
   calcTotals();
 }
 
-function todayStr() {
-  return new Date().toISOString().slice(0,10);
+function todayStr() { return new Date().toISOString().slice(0,10); }
+
+/* ══════════════════════════════════
+   LISTADO (vista médico — solo los suyos)
+══════════════════════════════════ */
+function myEntries() {
+  if (currentUser.role === 'admin') return allEntries;
+  return allEntries.filter(e => e.doctorId === currentUser.id);
 }
 
-/* ══════════════════════════════════════════════
-   LISTADO
-══════════════════════════════════════════════ */
 function renderList() {
-  const monthFilter = document.getElementById('filter-month-list').value;
-  let filtered = entries;
-  if (monthFilter) filtered = filtered.filter(e => e.date && e.date.slice(0,7) === monthFilter);
-  if (filterCat !== 'all') filtered = filtered.filter(e => e.catTotals && e.catTotals[filterCat] > 0);
-  filtered = filtered.slice().reverse();
+  const mf   = document.getElementById('filter-month-list').value;
+  let data   = myEntries();
+  if (mf) data = data.filter(e => e.date && e.date.slice(0,7) === mf);
+  if (filterCat !== 'all') data = data.filter(e => e.catTotals && e.catTotals[filterCat] > 0);
+  data = data.slice().reverse();
 
-  // build chips
-  const allCats = new Set(entries.flatMap(e => Object.keys(e.catTotals || {})));
-  const chips = document.getElementById('filter-chips');
+  const allCats = new Set(myEntries().flatMap(e => Object.keys(e.catTotals || {})));
+  const chips   = document.getElementById('filter-chips');
   chips.innerHTML = `<span class="chip ${filterCat==='all'?'active':''}" onclick="setFilter('all',this)">Todos</span>`;
   allCats.forEach(cat => {
     const obj = CATEGORIES.find(c=>c.id===cat);
-    chips.innerHTML += `<span class="chip ${filterCat===cat?'active':''}" data-filter="${cat}" onclick="setFilter('${cat}',this)">${obj?obj.label:cat}</span>`;
+    chips.innerHTML += `<span class="chip ${filterCat===cat?'active':''}" onclick="setFilter('${cat}',this)">${obj?obj.label:cat}</span>`;
   });
 
   const cont = document.getElementById('entries-list');
-  if (!filtered.length) {
-    cont.innerHTML = `<div class="empty">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6M9 16h6M7 4H4a1 1 0 00-1 1v14a1 1 0 001 1h16a1 1 0 001-1V5a1 1 0 00-1-1h-3"/><rect x="7" y="2" width="10" height="4" rx="1"/></svg>
-      <p>No hay registros</p>
-      <small>${monthFilter ? 'para este mes' : 'aún'}</small>
-    </div>`; return;
-  }
+  if (!data.length) { cont.innerHTML = `<div class="empty"><p>No hay registros</p><small>${mf?'para este mes':'aún'}</small></div>`; return; }
 
-  cont.innerHTML = filtered.map(e => {
-    const itemBadges = e.items.slice(0,4).map(it =>
-      `<span class="cat-badge" style="background:${CAT_COLORS[it.cat]}22;color:${CAT_COLORS[it.cat]}">${it.desc || it.cat}</span>`
-    ).join('') + (e.items.length > 4 ? `<span class="text-muted">+${e.items.length-4} más</span>` : '');
-
+  cont.innerHTML = data.map(e => {
+    const badges = e.items.slice(0,4).map(it =>
+      `<span class="cat-badge" style="background:${CAT_COLORS[it.cat]}22;color:${CAT_COLORS[it.cat]}">${it.desc||it.cat}</span>`
+    ).join('') + (e.items.length>4?`<span class="text-muted">+${e.items.length-4} más</span>`:'');
     return `<div class="entry-card" onclick="openDetail(${e.id})">
       <div class="entry-header">
-        <div class="entry-meta">
-          <div style="display:flex;align-items:center;gap:8px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
             <span class="entry-patient">${e.patient}</span>
             <span class="entry-fact">Fact. ${e.fact}</span>
           </div>
@@ -796,10 +619,10 @@ function renderList() {
         </div>
         <span class="entry-total-badge">$${e.totalCom.toLocaleString('es-CO')}</span>
       </div>
-      <div class="entry-items-preview">${itemBadges}</div>
-      <div class="entry-actions" onclick="event.stopPropagation()">
+      <div class="entry-items-preview">${badges}</div>
+      <div class="entry-actions" style="display:flex;gap:6px;margin-top:12px" onclick="event.stopPropagation()">
         <button class="btn btn-ghost btn-sm" onclick="openDetail(${e.id})">Ver detalle</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">Eliminar</button>
+        ${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">Eliminar</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -807,271 +630,361 @@ function renderList() {
 
 function setFilter(cat, el) {
   filterCat = cat;
-  document.querySelectorAll('.filter-row .chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.filter-row .chip').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
   renderList();
 }
 
-function clearMonthFilter() {
-  document.getElementById('filter-month-list').value = '';
-  renderList();
-}
-
 function deleteEntry(id) {
+  if (currentUser.role !== 'admin') return;
   if (!confirm('¿Eliminar este registro?')) return;
-  entries = entries.filter(e => e.id !== id);
-  save();
+  allEntries = allEntries.filter(e => e.id !== id);
+  saveEntries();
   renderList();
+  showToast('Registro eliminado');
 }
 
-/* ══════════════════════════════════════════════
+/* ══════════════════════════════════
    DETALLE MODAL
-══════════════════════════════════════════════ */
+══════════════════════════════════ */
 function openDetail(id) {
-  const e = entries.find(en => en.id === id);
+  const e = allEntries.find(en => en.id === id);
   if (!e) return;
+  // Solo puede ver sus propios registros (admin ve todos)
+  if (currentUser.role === 'doctor' && e.doctorId !== currentUser.id) return;
+  const pcts = e.items.length ? Object.fromEntries(e.items.map(it=>[it.cat,it.pct])) : myPcts();
   document.getElementById('modal-title').textContent = `${e.patient} · Fact. ${e.fact}`;
-
   const rows = e.items.map(it => {
-    const color = CAT_COLORS[it.cat] || '#fff';
-    const catObj = CATEGORIES.find(c => c.id === it.cat);
-    return `<tr>
-      <td>${it.desc || '—'}</td>
+    const color  = CAT_COLORS[it.cat]||'#fff';
+    const catObj = CATEGORIES.find(c=>c.id===it.cat);
+    return `<tr><td>${it.desc||'—'}</td>
       <td><span class="cat-badge" style="background:${color}22;color:${color}">${catObj?catObj.label:it.cat}</span></td>
       <td style="font-family:var(--font-mono);text-align:right">$${it.val.toLocaleString('es-CO')}</td>
       <td style="font-family:var(--font-mono);color:var(--text-soft);text-align:right">${it.pct}%</td>
-      <td style="font-family:var(--font-mono);color:var(--accent2);text-align:right">$${it.com.toLocaleString('es-CO')}</td>
-    </tr>`;
+      <td style="font-family:var(--font-mono);color:var(--accent2);text-align:right">$${it.com.toLocaleString('es-CO')}</td></tr>`;
   }).join('');
-
-  const cats = Object.entries(e.catTotals).map(([cat, com]) => {
+  const cats = Object.entries(e.catTotals).map(([cat,com]) => {
     const obj = CATEGORIES.find(c=>c.id===cat);
-    return `<div class="total-line">
-      <span class="tl-label">${obj?obj.label:cat} (${pcts[cat]}%)</span>
-      <span class="tl-val">$${com.toLocaleString('es-CO')}</span>
-    </div>`;
+    return `<div class="total-line"><span class="tl-label">${obj?obj.label:cat} (${pcts[cat]||'?'}%)</span><span class="tl-val">$${com.toLocaleString('es-CO')}</span></div>`;
   }).join('');
-
   document.getElementById('modal-body').innerHTML = `
     <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">
       <div><span class="text-muted">Propietario</span><br/><strong>${e.owner||'—'}</strong></div>
       <div><span class="text-muted">Fecha</span><br/><strong>${fmtDate(e.date)}</strong></div>
-      ${e.notes ? `<div><span class="text-muted">Notas</span><br/><strong>${e.notes}</strong></div>` : ''}
+      <div><span class="text-muted">Médico</span><br/><strong>${e.doctorName||'—'}</strong></div>
+      ${e.notes?`<div><span class="text-muted">Notas</span><br/><strong>${e.notes}</strong></div>`:''}
     </div>
     <div class="scrollable-x">
     <table class="breakdown-table" style="margin-bottom:16px">
-      <thead><tr>
-        <th>Descripción</th><th>Categoría</th>
-        <th style="text-align:right">Valor</th>
-        <th style="text-align:right">%</th>
-        <th style="text-align:right">Comisión</th>
-      </tr></thead>
+      <thead><tr><th>Descripción</th><th>Categoría</th><th style="text-align:right">Valor</th><th style="text-align:right">%</th><th style="text-align:right">Comisión</th></tr></thead>
       <tbody>${rows}</tbody>
-    </table>
-    </div>
+    </table></div>
     <div class="totals-preview">
       <h4>Comisiones por categoría</h4>
       <div class="totals-grid">${cats}</div>
-      <div class="total-grand">
-        <span>Total comisión</span>
-        <span class="tl-val">$${e.totalCom.toLocaleString('es-CO')}</span>
-      </div>
-    </div>
-  `;
+      <div class="total-grand"><span>Total comisión</span><span class="tl-val">$${e.totalCom.toLocaleString('es-CO')}</span></div>
+    </div>`;
   document.getElementById('modal-backdrop').classList.add('open');
 }
 
-function closeModal(evt) {
-  if (!evt || evt.target === document.getElementById('modal-backdrop')) {
-    document.getElementById('modal-backdrop').classList.remove('open');
-  }
-}
+function closeModal() { document.getElementById('modal-backdrop').classList.remove('open'); }
 
-/* ══════════════════════════════════════════════
-   RESUMEN MENSUAL
-══════════════════════════════════════════════ */
+/* ══════════════════════════════════
+   RESUMEN
+══════════════════════════════════ */
 function renderSummary() {
-  const mf = document.getElementById('filter-month-summary').value;
-  let data = entries;
+  const mf   = document.getElementById('filter-month-summary').value;
+  let data   = myEntries();
   if (mf) data = data.filter(e => e.date && e.date.slice(0,7) === mf);
-
   const cont = document.getElementById('summary-content');
-  if (!data.length) {
-    cont.innerHTML = `<div class="empty"><p>Sin datos para el período seleccionado</p></div>`; return;
-  }
+  if (!data.length) { cont.innerHTML = `<div class="empty"><p>Sin datos para el período</p></div>`; return; }
 
-  const totalCom  = data.reduce((a,e)=>a+e.totalCom,0);
+  const totalCom   = data.reduce((a,e)=>a+e.totalCom,0);
   const totalVenta = data.reduce((a,e)=>a+e.totalVal,0);
-  const nRegistros = data.length;
 
-  // aggregate by category
   const catAgg = {};
-  data.forEach(e => {
-    Object.entries(e.catTotals || {}).forEach(([cat,com]) => {
-      catAgg[cat] = (catAgg[cat] || {sumCom:0, sumVal:0, count:0});
-      catAgg[cat].sumCom += com;
-      catAgg[cat].count++;
-    });
-    e.items.forEach(it => {
-      if (!catAgg[it.cat]) catAgg[it.cat] = {sumCom:0, sumVal:0, count:0};
-      catAgg[it.cat].sumVal += it.val;
-    });
-  });
+  data.forEach(e => e.items.forEach(it => {
+    if (!catAgg[it.cat]) catAgg[it.cat] = {sumVal:0,sumCom:0};
+    catAgg[it.cat].sumVal += it.val;
+    catAgg[it.cat].sumCom += it.com;
+  }));
 
   const catRows = Object.entries(catAgg).sort((a,b)=>b[1].sumCom-a[1].sumCom).map(([cat,agg]) => {
-    const obj = CATEGORIES.find(c=>c.id===cat);
-    const color = CAT_COLORS[cat] || '#fff';
-    return `<tr>
-      <td><span class="cat-badge" style="background:${color}22;color:${color}">${obj?obj.label:cat}</span></td>
+    const obj   = CATEGORIES.find(c=>c.id===cat);
+    const color = CAT_COLORS[cat]||'#fff';
+    return `<tr><td><span class="cat-badge" style="background:${color}22;color:${color}">${obj?obj.label:cat}</span></td>
       <td style="font-family:var(--font-mono);text-align:right">$${agg.sumVal.toLocaleString('es-CO')}</td>
-      <td style="text-align:right">${pcts[cat]}%</td>
-      <td>$${agg.sumCom.toLocaleString('es-CO')}</td>
+      <td style="text-align:right">${myPcts()[cat]||0}%</td>
+      <td>$${agg.sumCom.toLocaleString('es-CO')}</td></tr>`;
+  }).join('');
+
+  const patMap = {};
+  data.forEach(e => {
+    const k = e.patient+'|'+e.owner;
+    if (!patMap[k]) patMap[k] = {patient:e.patient,owner:e.owner,total:0,n:0};
+    patMap[k].total += e.totalCom; patMap[k].n++;
+  });
+  const patRows = Object.values(patMap).sort((a,b)=>b.total-a.total).map(p =>
+    `<tr><td>${p.patient}</td><td style="color:var(--text-soft)">${p.owner}</td><td style="text-align:right">${p.n}</td><td>$${p.total.toLocaleString('es-CO')}</td></tr>`
+  ).join('');
+
+  const mLabel = mf ? new Date(mf+'-15').toLocaleDateString('es-CO',{month:'long',year:'numeric'}) : 'Todos';
+  cont.innerHTML = `
+    <div class="summary-bar">
+      <div class="stat-box"><div class="stat-label">Total comisión</div><div class="stat-val accent">$${totalCom.toLocaleString('es-CO')}</div></div>
+      <div class="stat-box"><div class="stat-label">Venta total</div><div class="stat-val">$${totalVenta.toLocaleString('es-CO')}</div></div>
+      <div class="stat-box"><div class="stat-label">Registros</div><div class="stat-val small" style="color:var(--text)">${data.length}</div></div>
+    </div>
+    <div class="card"><div class="card-title">Por categoría · ${mLabel}</div>
+      <div class="scrollable-x"><table class="breakdown-table">
+        <thead><tr><th>Categoría</th><th style="text-align:right">Venta</th><th style="text-align:right">%</th><th style="text-align:right">Comisión</th></tr></thead>
+        <tbody>${catRows}</tbody>
+      </table></div></div>
+    <div class="card"><div class="card-title">Por paciente</div>
+      <div class="scrollable-x"><table class="breakdown-table">
+        <thead><tr><th>Paciente</th><th>Propietario</th><th style="text-align:right">Visitas</th><th style="text-align:right">Comisión</th></tr></thead>
+        <tbody>${patRows}</tbody>
+      </table></div></div>
+    <div style="text-align:right;margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="exportExcel()">📥 Excel</button>
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ Imprimir</button>
+    </div>`;
+}
+
+/* ══════════════════════════════════
+   ADMIN: MÉDICOS
+══════════════════════════════════ */
+function renderDoctors() {
+  const catHeaders = CATEGORIES.map(c=>`<th>${c.label}<br/><span style="font-weight:400;color:var(--muted);font-size:10px">%</span></th>`).join('');
+  const rows = doctors.map(doc => {
+    const pctInputs = CATEGORIES.map(c =>
+      `<td><input class="pct-input-sm" type="number" min="0" max="100" step="1"
+         value="${doc.pcts[c.id]??c.defaultPct}"
+         onchange="updateDoctorPct('${doc.id}','${c.id}',this.value)"/></td>`
+    ).join('');
+    return `<tr>
+      <td><strong>${doc.name}</strong><br/><span style="color:var(--text-soft);font-size:12px">@${doc.username}</span></td>
+      ${pctInputs}
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="changeDocPass('${doc.id}')">🔑 Clave</button>
+        <button class="btn btn-danger btn-sm" style="margin-top:4px" onclick="deleteDoctor('${doc.id}')">✕</button>
+      </td>
     </tr>`;
   }).join('');
 
-  // per-patient
-  const patMap = {};
-  data.forEach(e => {
-    const key = e.patient + '|' + e.owner;
-    if (!patMap[key]) patMap[key] = { patient:e.patient, owner:e.owner, total:0, n:0 };
-    patMap[key].total += e.totalCom;
-    patMap[key].n++;
+  document.getElementById('doctors-table').innerHTML = `
+    <thead><tr><th>Médico</th>${catHeaders}<th>Acciones</th></tr></thead>
+    <tbody>${rows}</tbody>`;
+}
+
+function updateDoctorPct(docId, cat, val) {
+  const doc = doctors.find(d=>d.id===docId);
+  if (!doc) return;
+  doc.pcts[cat] = parseFloat(val)||0;
+  saveDoctors();
+  showToast('✅ Porcentaje actualizado');
+}
+
+function changeDocPass(docId) {
+  const doc = doctors.find(d=>d.id===docId);
+  if (!doc) return;
+  const np = prompt(`Nueva contraseña para ${doc.name}:`);
+  if (!np || !np.trim()) return;
+  doc.password = np.trim();
+  saveDoctors();
+  showToast('✅ Contraseña actualizada');
+}
+
+function deleteDoctor(docId) {
+  const doc = doctors.find(d=>d.id===docId);
+  if (!doc) return;
+  if (!confirm(`¿Eliminar al médico ${doc.name}? Sus registros se conservan.`)) return;
+  doctors = doctors.filter(d=>d.id!==docId);
+  saveDoctors();
+  renderDoctors();
+  showToast('Médico eliminado');
+}
+
+function openAddDoctor() {
+  document.getElementById('modal-title').textContent = 'Nuevo médico';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid" style="margin-bottom:12px">
+      <div><label>Nombre completo</label><input type="text" id="new-doc-name" placeholder="Ej: Carlos Pérez"/></div>
+      <div><label>Usuario</label><input type="text" id="new-doc-user" placeholder="Ej: carlos"/></div>
+      <div><label>Contraseña</label><input type="password" id="new-doc-pass" placeholder="Contraseña inicial"/></div>
+    </div>
+    <div class="divider"></div>
+    <p style="font-size:12px;color:var(--text-soft);margin-bottom:12px">Porcentajes de comisión</p>
+    <div class="form-grid cols-3">
+      ${CATEGORIES.map(c=>`<div><label>${c.label}</label><input type="number" id="new-pct-${c.id}" min="0" max="100" step="1" value="${c.defaultPct}"/></div>`).join('')}
+    </div>
+    <div class="mt-16 row-between">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmAddDoctor()">Crear médico</button>
+    </div>`;
+  document.getElementById('modal-backdrop').classList.add('open');
+}
+
+function confirmAddDoctor() {
+  const name = document.getElementById('new-doc-name').value.trim();
+  const user = document.getElementById('new-doc-user').value.trim();
+  const pass = document.getElementById('new-doc-pass').value.trim();
+  if (!name||!user||!pass) { alert('Completa todos los campos'); return; }
+  if (doctors.find(d=>d.username===user)||user===ADMIN_USER.username) { alert('Ese usuario ya existe'); return; }
+  const pcts = {};
+  CATEGORIES.forEach(c => { pcts[c.id] = parseFloat(document.getElementById('new-pct-'+c.id).value)||0; });
+  doctors.push({ id:'doc_'+Date.now(), name, username:user, password:pass, pcts });
+  saveDoctors();
+  closeModal();
+  renderDoctors();
+  showToast(`✅ Médico ${name} creado`);
+}
+
+/* ══════════════════════════════════
+   ADMIN: TODOS LOS REGISTROS
+══════════════════════════════════ */
+function renderAdminRegistros() {
+  const mf     = document.getElementById('filter-month-admin').value;
+  const docFil = document.getElementById('filter-doctor-admin').value;
+
+  // Rebuild doctor filter dropdown
+  const sel = document.getElementById('filter-doctor-admin');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Todos los médicos</option>';
+  const docIds = [...new Set(allEntries.map(e=>e.doctorId))];
+  docIds.forEach(id => {
+    const doc = doctors.find(d=>d.id===id);
+    const name = doc ? doc.name : id;
+    sel.innerHTML += `<option value="${id}" ${id===prev?'selected':''}>${name}</option>`;
   });
-  const patRows = Object.values(patMap).sort((a,b)=>b.total-a.total).map(p =>
-    `<tr>
-      <td>${p.patient}</td>
-      <td style="color:var(--text-soft)">${p.owner}</td>
-      <td style="text-align:right">${p.n}</td>
-      <td>$${p.total.toLocaleString('es-CO')}</td>
-    </tr>`
+  // also add admin entries
+  if (allEntries.find(e=>e.doctorId==='admin')) {
+    if (!sel.querySelector('option[value="admin"]'))
+      sel.innerHTML += `<option value="admin" ${'admin'===prev?'selected':''}>Administrador</option>`;
+  }
+
+  let data = allEntries;
+  if (mf)     data = data.filter(e=>e.date&&e.date.slice(0,7)===mf);
+  if (docFil) data = data.filter(e=>e.doctorId===docFil);
+  data = data.slice().reverse();
+
+  const totalCom = data.reduce((a,e)=>a+e.totalCom,0);
+  const cont = document.getElementById('admin-registros-list');
+
+  if (!data.length) { cont.innerHTML=`<div class="empty"><p>No hay registros</p></div>`; return; }
+
+  // Summary mini-bar
+  const byDoc = {};
+  data.forEach(e => {
+    if(!byDoc[e.doctorId]) byDoc[e.doctorId]={name:e.doctorName,total:0,n:0};
+    byDoc[e.doctorId].total+=e.totalCom; byDoc[e.doctorId].n++;
+  });
+  const docSummary = Object.values(byDoc).sort((a,b)=>b.total-a.total).map(d=>
+    `<div class="stat-box"><div class="stat-label">${d.name}</div><div class="stat-val small">$${d.total.toLocaleString('es-CO')}</div><div class="text-muted">${d.n} registros</div></div>`
   ).join('');
 
-  const mLabel = mf ? new Date(mf + '-15').toLocaleDateString('es-CO',{month:'long',year:'numeric'}) : 'Todos los registros';
-
   cont.innerHTML = `
-    <div class="summary-bar">
-      <div class="stat-box">
-        <div class="stat-label">Total comisión</div>
-        <div class="stat-val accent">$${totalCom.toLocaleString('es-CO')}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Venta total</div>
-        <div class="stat-val">$${totalVenta.toLocaleString('es-CO')}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Registros</div>
-        <div class="stat-val small" style="color:var(--text)">${nRegistros}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">% promedio</div>
-        <div class="stat-val small" style="color:var(--text-soft)">${totalVenta ? Math.round(totalCom/totalVenta*100) : 0}%</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Comisión por categoría · ${mLabel}</div>
-      <div class="scrollable-x">
-      <table class="breakdown-table">
-        <thead><tr>
-          <th>Categoría</th>
-          <th style="text-align:right">Venta</th>
-          <th style="text-align:right">%</th>
-          <th style="text-align:right">Comisión</th>
-        </tr></thead>
-        <tbody>${catRows}</tbody>
-      </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Por paciente</div>
-      <div class="scrollable-x">
-      <table class="breakdown-table">
-        <thead><tr>
-          <th>Paciente</th>
-          <th>Propietario</th>
-          <th style="text-align:right">Consultas</th>
-          <th style="text-align:right">Comisión</th>
-        </tr></thead>
-        <tbody>${patRows}</tbody>
-      </table>
-      </div>
-    </div>
-
-    <div style="text-align:right;margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn btn-ghost btn-sm" onclick="exportExcel()">📥 Exportar Excel</button>
-      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ Imprimir / PDF</button>
-    </div>
-  `;
+    <div class="summary-bar" style="margin-bottom:20px">
+      <div class="stat-box"><div class="stat-label">Total comisiones</div><div class="stat-val accent">$${totalCom.toLocaleString('es-CO')}</div></div>
+      ${docSummary}
+    </div>` +
+    data.map(e => {
+      const badges = e.items.slice(0,3).map(it=>
+        `<span class="cat-badge" style="background:${CAT_COLORS[it.cat]}22;color:${CAT_COLORS[it.cat]}">${it.desc||it.cat}</span>`
+      ).join('');
+      return `<div class="entry-card" onclick="openDetail(${e.id})">
+        <div class="entry-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+              <span class="entry-patient">${e.patient}</span>
+              <span class="entry-fact">Fact. ${e.fact}</span>
+              <span class="entry-doctor-tag">${e.doctorName}</span>
+            </div>
+            <span class="entry-owner">${e.owner} · ${fmtDate(e.date)}</span>
+          </div>
+          <span class="entry-total-badge">$${e.totalCom.toLocaleString('es-CO')}</span>
+        </div>
+        <div class="entry-items-preview">${badges}</div>
+        <div style="display:flex;gap:6px;margin-top:12px" onclick="event.stopPropagation()">
+          <button class="btn btn-ghost btn-sm" onclick="openDetail(${e.id})">Ver detalle</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">Eliminar</button>
+        </div>
+      </div>`;
+    }).join('');
 }
 
-function clearAllData() {
-  if (!confirm('¿Borrar TODOS los registros? Esta acción no se puede deshacer.')) return;
-  entries = [];
-  save();
-  alert('Datos borrados');
+function exportExcelAdmin() {
+  const mf     = document.getElementById('filter-month-admin').value;
+  const docFil = document.getElementById('filter-doctor-admin').value;
+  let data = allEntries;
+  if (mf)     data = data.filter(e=>e.date&&e.date.slice(0,7)===mf);
+  if (docFil) data = data.filter(e=>e.doctorId===docFil);
+  exportExcelData(data, 'Admin_' + (mf||'todos'));
 }
 
-function save() { localStorage.setItem('ac_entries', JSON.stringify(entries)); }
-
-function updateDoctorHeader() {}
-
-/* ══════════════════════════════════════════════
-   UTILS
-══════════════════════════════════════════════ */
-function fmtDate(d) {
-  if (!d) return '—';
-  const [y,m,day] = d.split('-');
-  return `${day}/${m}/${y}`;
+/* ══════════════════════════════════
+   EXPORT EXCEL
+══════════════════════════════════ */
+function exportExcel() {
+  const mf   = document.getElementById('filter-month-summary').value;
+  let data   = myEntries();
+  if (mf) data = data.filter(e=>e.date&&e.date.slice(0,7)===mf);
+  exportExcelData(data, (currentUser.name||'medico') + '_' + (mf||'todos'));
 }
 
-/* ══════════════════════════════════════════════
+function exportExcelData(data, suffix) {
+  if (!data.length) { showToast('No hay datos para exportar'); return; }
+  const wb = XLSX.utils.book_new();
+  const det = [['Fecha','Médico','Paciente','Propietario','Factura','Descripción','Categoría','Valor','%','Comisión ítem','Total comisión registro']];
+  data.forEach(e => e.items.forEach(it => {
+    const obj = CATEGORIES.find(c=>c.id===it.cat);
+    det.push([e.date,e.doctorName,e.patient,e.owner,e.fact,it.desc,obj?obj.label:it.cat,it.val,it.pct,it.com,e.totalCom]);
+  }));
+  const ws1 = XLSX.utils.aoa_to_sheet(det);
+  ws1['!cols'] = [12,18,18,18,10,25,16,12,6,12,16].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb, ws1, 'Detalle');
+
+  const res = [['Fecha','Médico','Paciente','Propietario','Factura','Venta Total','Comisión Total']];
+  data.forEach(e => res.push([e.date,e.doctorName,e.patient,e.owner,e.fact,e.totalVal,e.totalCom]));
+  res.push(['','','','','','TOTAL',data.reduce((a,e)=>a+e.totalCom,0)]);
+  const ws2 = XLSX.utils.aoa_to_sheet(res);
+  XLSX.utils.book_append_sheet(wb, ws2, 'Resumen');
+  XLSX.writeFile(wb, `Comisiones_${suffix}.xlsx`);
+  showToast('📥 Excel descargado');
+}
+
+/* ══════════════════════════════════
    GOOGLE SHEETS SYNC
-══════════════════════════════════════════════ */
-function getScriptUrl() { return 'https://script.google.com/macros/s/AKfycbxxGlG0RzuUnhF6jBtsstGQSCtEvIK4QvRA6vdPNLcGKM3usQr1fQI4p3nXVELClLPx/exec'; }
-
+══════════════════════════════════ */
 function setSyncStatus(state, msg, time) {
-  const dot = document.getElementById('sync-dot');
+  const dot   = document.getElementById('sync-dot');
   const msgEl = document.getElementById('sync-msg');
-  const timeEl = document.getElementById('sync-time');
+  const timeEl= document.getElementById('sync-time');
   if (!dot) return;
   dot.className = 'sync-dot ' + state;
-  if (msgEl) msgEl.textContent = msg;
+  if (msgEl)  msgEl.textContent  = msg;
   if (timeEl && time) timeEl.textContent = time;
 }
 
-function showToast(msg, duration = 3000) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration);
-}
-
 async function syncNow() {
-  const url = getScriptUrl();
-
-  setSyncStatus('pending', 'Sincronizando…');
+  setSyncStatus('pending','Sincronizando…');
   const btn = document.getElementById('sync-btn');
   if (btn) btn.disabled = true;
-
   try {
-    const resp = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'sync', entries }),
-    });
+    const payload = currentUser.role === 'admin'
+      ? { action:'sync', entries: allEntries }
+      : { action:'sync', entries: allEntries.filter(e=>e.doctorId===currentUser.id) };
+    const resp = await fetch(APPS_URL, { method:'POST', body: JSON.stringify(payload) });
     const data = await resp.json();
     if (data.ok) {
-      const now = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-      setSyncStatus('ok', `Sincronizado · ${entries.length} registros, ${data.rows} filas`, now);
-      config.lastSync = now;
-      localStorage.setItem('ac_config', JSON.stringify(config));
+      const now = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+      setSyncStatus('ok',`Sincronizado · ${data.rows} filas`, now);
       showToast('✅ Sincronizado con Google Sheets');
     } else {
-      setSyncStatus('error', 'Error: ' + (data.error || 'desconocido'));
-      showToast('❌ Error al sincronizar');
+      setSyncStatus('error','Error: '+(data.error||'desconocido'));
     }
   } catch(e) {
-    setSyncStatus('error', 'No se pudo conectar con el servidor');
+    setSyncStatus('error','No se pudo conectar');
     showToast('❌ Sin conexión con Apps Script');
   } finally {
     if (btn) btn.disabled = false;
@@ -1079,121 +992,46 @@ async function syncNow() {
 }
 
 async function loadFromSheets() {
-  const url = getScriptUrl();
-  if (!url) { showToast('⚠️ Configura la URL del Apps Script primero'); return; }
-
-  setSyncStatus('pending', 'Cargando desde Google Sheets…');
+  setSyncStatus('pending','Cargando desde Sheets…');
   try {
-    const resp = await fetch(url + '?action=getAll');
+    const resp = await fetch(APPS_URL + '?action=getAll');
     const data = await resp.json();
     if (data.ok && data.entries) {
-      // Merge: priorizar Sheets, conservar locales que no existan en Sheets
-      const sheetsIds = new Set(data.entries.map(e => String(e.id)));
-      const localOnly = entries.filter(e => !sheetsIds.has(String(e.id)));
-      entries = [...data.entries, ...localOnly];
-      save();
+      const sheetsIds = new Set(data.entries.map(e=>String(e.id)));
+      const localOnly = allEntries.filter(e=>!sheetsIds.has(String(e.id)));
+      allEntries = [...data.entries, ...localOnly];
+      saveEntries();
       renderList();
-      const now = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-      setSyncStatus('ok', `Cargado · ${entries.length} registros`, now);
-      showToast(`✅ ${entries.length} registros cargados`);
+      const now = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+      setSyncStatus('ok',`${allEntries.length} registros cargados`, now);
+      showToast(`✅ ${allEntries.length} registros cargados`);
     } else {
-      setSyncStatus('error', 'Error al cargar: ' + (data.error || ''));
+      setSyncStatus('error','Error al cargar: '+(data.error||''));
     }
   } catch(e) {
-    setSyncStatus('error', 'No se pudo conectar');
-    showToast('❌ Sin conexión con Apps Script');
+    setSyncStatus('error','No se pudo conectar');
   }
 }
-
-async 
 
 function updateSyncBar() {
-  const url = getScriptUrl();
-  if (!url) {
-    setSyncStatus('off', 'Sin sincronizar — configura la URL del Apps Script en ⚙️ Config');
-  } else if (config.lastSync) {
-    setSyncStatus('ok', `Google Sheets conectado · ${entries.length} registros`, config.lastSync);
-  } else {
-    setSyncStatus('off', 'URL configurada — presiona Sincronizar para subir los datos');
-  }
+  setSyncStatus('ok', 'Google Sheets conectado — listo para sincronizar');
 }
 
-/* ══════════════════════════════════════════════
-   EXPORT EXCEL
-══════════════════════════════════════════════ */
-function exportExcel() {
-  if (!entries.length) { showToast('No hay datos para exportar'); return; }
-
-  const mf = document.getElementById('filter-month-summary').value;
-  let data = entries;
-  if (mf) data = data.filter(e => e.date && e.date.slice(0,7) === mf);
-
-  const wb = XLSX.utils.book_new();
-
-  // ── Hoja 1: Detalle completo ──
-  const detRows = [['Fecha','Paciente','Propietario','Factura','Descripción','Categoría','Valor','% Comisión','Comisión ítem','Total comisión registro']];
-  data.forEach(e => {
-    e.items.forEach(it => {
-      const catObj = CATEGORIES.find(c => c.id === it.cat);
-      detRows.push([
-        e.date, e.patient, e.owner, e.fact,
-        it.desc, catObj ? catObj.label : it.cat,
-        it.val, it.pct, it.com, e.totalCom
-      ]);
-    });
-  });
-  const ws1 = XLSX.utils.aoa_to_sheet(detRows);
-  ws1['!cols'] = [10,20,20,12,25,18,12,10,12,18].map(w => ({ wch: w }));
-  XLSX.utils.book_append_sheet(wb, ws1, 'Detalle');
-
-  // ── Hoja 2: Resumen por registro ──
-  const resRows = [['Fecha','Paciente','Propietario','Factura','Notas','Venta Total','Comisión Total']];
-  data.forEach(e => {
-    resRows.push([e.date, e.patient, e.owner, e.fact, e.notes||'', e.totalVal, e.totalCom]);
-  });
-  resRows.push(['','','','','','TOTAL', data.reduce((a,e)=>a+e.totalCom,0)]);
-  const ws2 = XLSX.utils.aoa_to_sheet(resRows);
-  ws2['!cols'] = [12,20,20,12,20,14,14].map(w => ({ wch: w }));
-  XLSX.utils.book_append_sheet(wb, ws2, 'Resumen por registro');
-
-  // ── Hoja 3: Resumen por categoría ──
-  const catAgg = {};
-  data.forEach(e => {
-    e.items.forEach(it => {
-      if (!catAgg[it.cat]) catAgg[it.cat] = { sumVal: 0, sumCom: 0 };
-      catAgg[it.cat].sumVal += it.val;
-      catAgg[it.cat].sumCom += it.com;
-    });
-  });
-  const catRows2 = [['Categoría','% Comisión','Venta Total','Comisión Total']];
-  Object.entries(catAgg).sort((a,b)=>b[1].sumCom-a[1].sumCom).forEach(([cat, agg]) => {
-    const obj = CATEGORIES.find(c=>c.id===cat);
-    catRows2.push([obj?obj.label:cat, (pcts[cat]||0)+'%', agg.sumVal, agg.sumCom]);
-  });
-  catRows2.push(['TOTAL','',
-    Object.values(catAgg).reduce((a,b)=>a+b.sumVal,0),
-    Object.values(catAgg).reduce((a,b)=>a+b.sumCom,0)
-  ]);
-  const ws3 = XLSX.utils.aoa_to_sheet(catRows2);
-  ws3['!cols'] = [20,12,16,16].map(w => ({ wch: w }));
-  XLSX.utils.book_append_sheet(wb, ws3, 'Por categoría');
-
-  const doctor = config.doctor ? '_' + config.doctor.replace(/\s+/g,'_') : '';
-  const suffix = mf ? '_' + mf : '_todos';
-  XLSX.writeFile(wb, `Comisiones${doctor}${suffix}.xlsx`);
-  showToast('📥 Excel descargado');
+/* ══════════════════════════════════
+   UTILS
+══════════════════════════════════ */
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,day] = d.split('-');
+  return `${day}/${m}/${y}`;
 }
 
-
-document.getElementById('inp-date').value = todayStr();
-
-// pre-set month filters to current month
-const ym = new Date().toISOString().slice(0,7);
-document.getElementById('filter-month-list').value    = ym;
-document.getElementById('filter-month-summary').value = ym;
-
-updateDoctorHeader();
-updateSyncBar();
+function showToast(msg, duration=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), duration);
+}
 </script>
 </body>
 </html>
