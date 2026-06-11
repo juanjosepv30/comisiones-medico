@@ -1038,7 +1038,7 @@ function fmtDate(d) {
 /* ══════════════════════════════════════════════
    GOOGLE SHEETS SYNC
 ══════════════════════════════════════════════ */
-function getScriptUrl() { return config.appsScriptUrl || ''; }
+function getScriptUrl() { return 'https://script.google.com/macros/s/AKfycbxxGlG0RzuUnhF6jBtsstGQSCtEvIK4QvRA6vdPNLcGKM3usQr1fQI4p3nXVELClLPx/exec'; }
 
 function setSyncStatus(state, msg, time) {
   const dot = document.getElementById('sync-dot');
@@ -1116,32 +1116,7 @@ async function loadFromSheets() {
   }
 }
 
-async function testConnection() {
-  const url = document.getElementById('cfg-apps-url').value.trim();
-  if (!url) { document.getElementById('conn-status').textContent = '⚠️ Ingresa la URL primero'; return; }
-  document.getElementById('conn-status').textContent = '🔄 Probando…';
-  try {
-    const resp = await fetch(url + '?action=getAll');
-    const data = await resp.json();
-    if (data.ok) {
-      document.getElementById('conn-status').innerHTML =
-        `<span style="color:var(--success)">✅ Conexión exitosa · ${data.entries.length} registros en Sheets</span>`;
-    } else {
-      document.getElementById('conn-status').innerHTML =
-        `<span style="color:var(--danger)">❌ Error: ${data.error}</span>`;
-    }
-  } catch(e) {
-    document.getElementById('conn-status').innerHTML =
-      `<span style="color:var(--danger)">❌ No se pudo conectar. Verifica la URL y que el script esté publicado como "Cualquiera"</span>`;
-  }
-}
-
-function saveScriptUrl() {
-  config.appsScriptUrl = document.getElementById('cfg-apps-url').value.trim();
-  localStorage.setItem('ac_config', JSON.stringify(config));
-  showToast('✅ URL guardada');
-  updateSyncBar();
-}
+async 
 
 function updateSyncBar() {
   const url = getScriptUrl();
