@@ -508,15 +508,7 @@
     <div id="summary-content"></div>
   </div>
 
-      <div class="card">
-      <div class="card-title">Médico</div>
-      <div class="form-grid">
-        <div>
-          <label>Nombre del médico</label>
-          <input type="text" id="cfg-doctor" placeholder="Dr. / Dra. Apellido" />
-        </div>
-      </div>
-      <div class="mt-16">
+            <div class="mt-16">
         <button class="btn btn-primary btn-sm" onclick="saveConfig()">Guardar</button>
       </div>
     </div>
@@ -1022,9 +1014,7 @@ function clearAllData() {
 
 function save() { localStorage.setItem('ac_entries', JSON.stringify(entries)); }
 
-function updateDoctorHeader() {
-  document.getElementById('doctorName').textContent = config.doctor ? '👤 ' + config.doctor : '';
-}
+function updateDoctorHeader() {}
 
 /* ══════════════════════════════════════════════
    UTILS
