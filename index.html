@@ -258,6 +258,12 @@ to{opacity:1}}
     <div class="month-bar">
       <label>Mes</label>
       <input type="month" id="filter-month-summary" onchange="renderSummary()"/>
+      <span id="summary-doctor-filter" style="display:none">
+        <label style="margin-left:12px">Médico</label>
+        <select id="filter-doctor-summary" onchange="renderSummary()" style="width:auto;max-width:200px">
+          <option value="">Todos</option>
+        </select>
+      </span>
     </div>
     <div id="summary-content"></div>
   </div>
@@ -908,6 +914,30 @@ function renderSummary() {
   const mf   = document.getElementById('filter-month-summary').value;
   let data   = myEntries();
   if (mf) data = data.filter(e => e.date && e.date.slice(0,7) === mf);
+
+  // Admin: mostrar filtro de médico y aplicarlo
+  const docFilterWrap = document.getElementById('summary-doctor-filter');
+  if (currentUser && currentUser.role === 'admin') {
+    if (docFilterWrap) docFilterWrap.style.display = 'inline-flex';
+    // Reconstruir opciones del select
+    const sel = document.getElementById('filter-doctor-summary');
+    const prev = sel ? sel.value : '';
+    if (sel) {
+      sel.innerHTML = '<option value="">Todos los médicos</option>';
+      const docIds = [...new Set(allEntries.map(e => e.doctorId))];
+      docIds.forEach(id => {
+        const doc  = doctors.find(d => d.id === id);
+        const name = doc ? doc.name : (id === 'admin' ? 'Administrador' : id);
+        sel.innerHTML += `<option value="${id}" ${id===prev?'selected':''}>${name}</option>`;
+      });
+      sel.value = prev;
+    }
+    const docFil = sel ? sel.value : '';
+    if (docFil) data = data.filter(e => e.doctorId === docFil);
+  } else {
+    if (docFilterWrap) docFilterWrap.style.display = 'none';
+  }
+
   const cont = document.getElementById('summary-content');
   if (!data.length) { cont.innerHTML = `<div class="empty"><p>Sin datos para el período</p></div>`; return; }
 
@@ -940,7 +970,10 @@ function renderSummary() {
     `<tr><td>${p.patient}</td><td style="color:var(--text-soft)">${p.owner}</td><td style="text-align:right">${p.n}</td><td>$${p.total.toLocaleString('es-CO')}</td></tr>`
   ).join('');
 
-  const mLabel = mf ? new Date(mf+'-15').toLocaleDateString('es-CO',{month:'long',year:'numeric'}) : 'Todos';
+  const sel2   = document.getElementById('filter-doctor-summary');
+  const docVal = sel2 ? sel2.value : '';
+  const docLabel = docVal ? (' · ' + (sel2.options[sel2.selectedIndex]||{}).text) : '';
+  const mLabel = (mf ? new Date(mf+'-15').toLocaleDateString('es-CO',{month:'long',year:'numeric'}) : 'Todos') + docLabel;
   cont.innerHTML = `
     <div class="summary-bar">
       <div class="stat-box"><div class="stat-label">Total comisión</div><div class="stat-val accent">$${totalCom.toLocaleString('es-CO')}</div></div>
