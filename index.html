@@ -407,7 +407,7 @@
   <button class="tab-btn active" onclick="switchTab('registro')">➕ Nuevo registro</button>
   <button class="tab-btn" onclick="switchTab('listado')">📋 Registros</button>
   <button class="tab-btn" onclick="switchTab('resumen')">📊 Resumen mensual</button>
-  <button class="tab-btn" onclick="switchTab('config')">⚙️ Config</button>
+
 </div>
 
 <div class="main">
@@ -508,27 +508,7 @@
     <div id="summary-content"></div>
   </div>
 
-  <!-- ════════════════ TAB: CONFIG ════════════════ -->
-  <div id="view-config" class="view">
-    <div class="card">
-      <div class="card-title">Google Sheets — Sincronización</div>
-      <p style="font-size:12px;color:var(--text-soft);margin-bottom:12px">
-        Pega la URL del Apps Script desplegado como Web App. Los datos se sincronizan en tiempo real desde cualquier celular o computador.
-      </p>
-      <div class="form-grid full">
-        <div>
-          <label>URL del Apps Script (Web App)</label>
-          <input type="url" id="cfg-apps-url" placeholder="https://script.google.com/macros/s/..." />
-        </div>
-      </div>
-      <div class="mt-16 row-between">
-        <button class="btn btn-primary btn-sm" onclick="saveScriptUrl()">Guardar URL</button>
-        <button class="btn btn-ghost btn-sm" onclick="testConnection()">🔌 Probar conexión</button>
-      </div>
-      <div id="conn-status" style="margin-top:10px;font-size:12px;color:var(--text-soft)"></div>
-    </div>
-
-    <div class="card">
+      <div class="card">
       <div class="card-title">Médico</div>
       <div class="form-grid">
         <div>
@@ -598,6 +578,10 @@ const CAT_COLORS = {
 let entries  = JSON.parse(localStorage.getItem('ac_entries')  || '[]');
 let config   = JSON.parse(localStorage.getItem('ac_config')   || '{}');
 let pcts     = JSON.parse(localStorage.getItem('ac_pcts')     || 'null');
+
+// ── Configuración fija ──
+config.appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxxGlG0RzuUnhF6jBtsstGQSCtEvIK4QvRA6vdPNLcGKM3usQr1fQI4p3nXVELClLPx/exec';
+localStorage.setItem('ac_config', JSON.stringify(config));
 let itemRows = [];
 let filterCat = 'all';
 
@@ -613,7 +597,6 @@ function switchTab(name) {
   event.currentTarget.classList.add('active');
   if (name === 'listado')  renderList();
   if (name === 'resumen')  renderSummary();
-  if (name === 'config')   renderConfig();
 }
 
 /* ══════════════════════════════════════════════
@@ -1030,47 +1013,6 @@ function renderSummary() {
   `;
 }
 
-/* ══════════════════════════════════════════════
-   CONFIGURACIÓN
-══════════════════════════════════════════════ */
-function renderConfig() {
-  document.getElementById('cfg-doctor').value = config.doctor || '';
-  const urlEl = document.getElementById('cfg-apps-url');
-  if (urlEl) urlEl.value = config.appsScriptUrl || '';
-
-  const grid = document.getElementById('pct-grid');
-  grid.innerHTML = CATEGORIES.map(c => `
-    <div>
-      <label>${c.label}</label>
-      <input type="number" id="pct-input-${c.id}" min="0" max="100" step="1"
-             value="${pcts[c.id] ?? c.pct}" />
-    </div>
-  `).join('');
-}
-
-function saveConfig() {
-  config.doctor = document.getElementById('cfg-doctor').value.trim();
-  localStorage.setItem('ac_config', JSON.stringify(config));
-  updateDoctorHeader();
-  alert('✅ Configuración guardada');
-}
-
-function savePcts() {
-  CATEGORIES.forEach(c => {
-    const el = document.getElementById('pct-input-' + c.id);
-    if (el) pcts[c.id] = parseFloat(el.value) || 0;
-  });
-  localStorage.setItem('ac_pcts', JSON.stringify(pcts));
-  alert('✅ Porcentajes guardados');
-}
-
-function resetPcts() {
-  CATEGORIES.forEach(c => pcts[c.id] = c.pct);
-  localStorage.setItem('ac_pcts', JSON.stringify(pcts));
-  renderConfig();
-  alert('✅ Porcentajes restablecidos');
-}
-
 function clearAllData() {
   if (!confirm('¿Borrar TODOS los registros? Esta acción no se puede deshacer.')) return;
   entries = [];
@@ -1286,11 +1228,7 @@ const ym = new Date().toISOString().slice(0,7);
 document.getElementById('filter-month-list').value    = ym;
 document.getElementById('filter-month-summary').value = ym;
 
-// URL preconfigurada
-config.appsScriptUrl = config.appsScriptUrl || 'https://script.google.com/macros/s/AKfycbxxGlG0RzuUnhF6jBtsstGQSCtEvIK4QvRA6vdPNLcGKM3usQr1fQI4p3nXVELClLPx/exec';
-localStorage.setItem('ac_config', JSON.stringify(config));
 updateDoctorHeader();
-renderConfig();
 updateSyncBar();
 </script>
 </body>
